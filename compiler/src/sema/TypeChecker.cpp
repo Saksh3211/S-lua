@@ -825,11 +825,11 @@ SluaTypePtr TypeChecker::check_table_ctor(TableCtor& e, SourceLoc loc) {
     // Check all entry expressions
     bool all_named = true;
     for (auto& entry : e.entries) {
-        if (entry.key) check_expr(*entry.key);
+        if (entry.key) check_expr(**entry.key);
         check_expr(*entry.val);
         if (!entry.key) all_named = false;
         else {
-            auto* sl = std::get_if<StrLit>(&entry.key->v);
+            auto* sl = std::get_if<StrLit>(&(*entry.key)->v);
             if (!sl) all_named = false;
         }
     }
@@ -839,7 +839,7 @@ SluaTypePtr TypeChecker::check_table_ctor(TableCtor& e, SourceLoc loc) {
         rt->kind = TypeKind::RECORD;
         for (auto& entry : e.entries) {
             if (!entry.key) continue;
-            auto* sl = std::get_if<StrLit>(&entry.key->v);
+            auto* sl = std::get_if<StrLit>(&(*entry.key)->v);
             if (sl) {
                 SluaTypePtr ft = check_expr(*entry.val);
                 RecordField rf;

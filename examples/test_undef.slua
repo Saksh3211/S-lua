@@ -1,0 +1,6 @@
+--!!strict
+local undefined_var
+function main():int
+    local x:int = undefined_var + 1
+    return x
+end

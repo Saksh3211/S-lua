@@ -1,0 +1,7 @@
+--!!strict
+function greet(name: string): void
+end
+function main(): int
+    greet("hello", "extra")
+    return 0
+end

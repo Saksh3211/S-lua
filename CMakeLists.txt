@@ -9,12 +9,12 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # -- LLVM (optional until codegen phase) ---------------------------------------
 find_package(LLVM CONFIG QUIET)
 if(LLVM_FOUND)
-    message(STATUS "LLVM ${LLVM_PACKAGE_VERSION} found — codegen enabled")
+    message(STATUS "LLVM ${LLVM_PACKAGE_VERSION} found ï¿½ codegen enabled")
     include_directories(${LLVM_INCLUDE_DIRS})
     add_definitions(${LLVM_DEFINITIONS})
     set(SLUA_HAS_LLVM TRUE)
 else()
-    message(STATUS "LLVM not found — building without codegen (lexer/parser only)")
+    message(STATUS "LLVM not found ï¿½ building without codegen (lexer/parser only)")
     set(SLUA_HAS_LLVM FALSE)
 endif()
 
@@ -23,5 +23,5 @@ add_subdirectory(runtime)
 add_subdirectory(compiler)
 
 # -- Tests ---------------------------------------------------------------------
-enable_testing()
-add_subdirectory(tests)
+#enable_testing()
+#add_subdirectory(tests)

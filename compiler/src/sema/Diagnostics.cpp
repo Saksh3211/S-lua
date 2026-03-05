@@ -8,7 +8,7 @@ void DiagEngine::emit(DiagLevel level, std::string code, std::string msg, Source
     diags_.push_back({level, code, msg, loc});
     const char* prefix = (level == DiagLevel::ERROR)   ? "E" :
                          (level == DiagLevel::WARNING)  ? "W" : "N";
-    fprintf(stderr, "[%s%s] %s:%d:%d — %s\n",
+    fprintf(stderr, "[%s%s] %s:%d:%d  %s\n",
             prefix, code.c_str(),
             loc.filename.c_str(), loc.line, loc.col,
             msg.c_str());
