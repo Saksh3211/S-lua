@@ -1,6 +1,6 @@
 # S Lua Compiler
 
-S Lua (Systems Lua) — a compiled, low-level systems programming language with Lua-inspired syntax.
+S Lua (Systems Lua) â€” a compiled, low-level systems programming language with Lua-inspired syntax.
 
 ## Prerequisites
 
@@ -14,16 +14,16 @@ S Lua (Systems Lua) — a compiled, low-level systems programming language with Lu
 ## Quick Start
 
 ```powershell
-# 1. Run the bootstrap (already done if you're reading this)
+# Run the bootstrap (already done if you're reading this)
 # .\bootstrap_slua.ps1
 
-# 2. Install prerequisites (LLVM installer sets LLVM_DIR automatically)
+# Install prerequisites (LLVM installer sets LLVM_DIR automatically)
 
-# 3. Configure and build
+# Configure and build
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --parallel
 
-# 4. Test the lexer
+# Test the lexer
 .\build\compiler\sluac.exe examples\hello_strict.slua --emit-tokens
 .\build\compiler\sluac.exe examples\hello_nonstrict.slua --emit-tokens
 
@@ -36,22 +36,22 @@ code .
 ```
 slua-compiler/
 +-- compiler/
-¦   +-- include/slua/     # All compiler headers
-¦   ¦   +-- Lexer.h
-¦   ¦   +-- AST.h
-¦   ¦   +-- Parser.h
-¦   ¦   +-- Diagnostics.h
-¦   ¦   +-- SemanticConfig.h
-¦   +-- src/
-¦       +-- lexer/        Lexer.cpp
-¦       +-- parser/       Parser.cpp (recursive descent)
-¦       +-- ast/          (AST printing, visitors)
-¦       +-- sema/         (Type checker, scope resolver)
-¦       +-- codegen/      (LLVM IR emitter)
-¦       +-- driver/       main.cpp (sluac entry point)
+Â¦   +-- include/slua/     # All compiler headers
+Â¦   Â¦   +-- Lexer.h
+Â¦   Â¦   +-- AST.h
+Â¦   Â¦   +-- Parser.h
+Â¦   Â¦   +-- Diagnostics.h
+Â¦   Â¦   +-- SemanticConfig.h
+Â¦   +-- src/
+Â¦       +-- lexer/        Lexer.cpp
+Â¦       +-- parser/       Parser.cpp (recursive descent)
+Â¦       +-- ast/          (AST printing, visitors)
+Â¦       +-- sema/         (Type checker, scope resolver)
+Â¦       +-- codegen/      (LLVM IR emitter)
+Â¦       +-- driver/       main.cpp (sluac entry point)
 +-- runtime/
-¦   +-- include/          slua_runtime.h
-¦   +-- src/              slua_runtime.c, slua_table.c
+Â¦   +-- include/          slua_runtime.h
+Â¦   +-- src/              slua_runtime.c, slua_table.c
 +-- examples/             .slua example programs
 +-- tests/                CTest-integrated .slua tests
 +-- .vscode/              Settings, tasks, launch config
@@ -65,7 +65,7 @@ slua-compiler/
 | Directive scanner + mode detection | DONE |
 | Lexer | DONE |
 | AST node definitions | DONE |
-| Parser (recursive descent) | STUB — expand Parser.cpp |
+| Parser (recursive descent) | STUB â€” expand Parser.cpp |
 | Name resolution + scope | TODO |
 | Type checker | TODO |
 | LLVM IR emitter | TODO |
