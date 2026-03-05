@@ -63,8 +63,8 @@ function add(a: int, b: int): int
 end
 
 print(add(x, y))
-'''
-Variables
+
+Variables:
 Variables can be mutable or immutable.
 '''lua 
 --!!strict
@@ -72,4 +72,3 @@ Variables can be mutable or immutable.
 local value: int = 10
 
 const MAX_COUNT: int = 100
-'''
