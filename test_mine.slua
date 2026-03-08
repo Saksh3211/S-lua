@@ -6,7 +6,6 @@ end
 
 function main():int64
     local result:int64 = add(10, 20)
-    return result
+    print(result)
+    return 0
 end
-
-main()
