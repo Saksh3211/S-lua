@@ -412,7 +412,7 @@ void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
     // Save caller context
     llvm::Function*   saved_func     = cur_func_;
     llvm::BasicBlock* saved_ret_bb   = cur_ret_bb_;
-    llvm::Value*      saved_ret_slot = cur_ret_slot_;
+    llvm::AllocaInst* saved_ret_slot = cur_ret_slot_;
 
     cur_func_   = fn;
     cur_ret_bb_ = exit_bb;
@@ -838,7 +838,7 @@ llvm::Value* IREmitter::emit_expr(Expr& e) {
         }
 
         else if constexpr (std::is_same_v<T, TypeofExpr>) {
-            check_expr(*v.expr); // side effect only
+            emit_expr(*v.expr);
             return builder_.CreateGlobalStringPtr("any");
         }
 

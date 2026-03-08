@@ -329,13 +329,17 @@ int main(int argc, char** argv) {
 #ifdef SLUA_HAS_LLVM
     // Stage 7 IR emission
     {
+        fprintf(stderr, "sluac: creating emitter\n"); fflush(stderr);
         slua::IREmitter emitter(diag, cfg, input_file);
-        if (!emitter.emit(*mod)) {
+        fprintf(stderr, "sluac: calling emit\n"); fflush(stderr);
+        fprintf(stderr, "sluac: emit returned\n"); fflush(stderr);
+        if (!emitter.emit(*mod))
             diag.dump_all();
             return 1;
         }
         if (output_file == "a.out") output_file = "output.ll";
-        if (!emitter.write_ll(output_file)) return 1;
+        fprintf(stderr, "sluac: writing ll\n"); fflush(stderr);
+        if (!emitter.write_ll(output_file))
         fprintf(stderr, "sluac: wrote IR to %s\n", output_file.c_str());
     }
     return 0;
