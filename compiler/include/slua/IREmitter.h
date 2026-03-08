@@ -89,7 +89,7 @@ private:
     // ── Current function context ──────────────────────────────────────────────
     llvm::Function*   cur_func_     = nullptr;
     llvm::BasicBlock* cur_ret_bb_   = nullptr;  // function exit block
-    llvm::Value*      cur_ret_slot_ = nullptr;  // alloca for return value
+    llvm::AllocaInst* cur_ret_slot_ = nullptr;  // alloca for return value
     CompileMode       cur_mode_     = CompileMode::NONSTRICT;
 
     // ── LLVM type helpers ─────────────────────────────────────────────────────

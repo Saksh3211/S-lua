@@ -1,5 +1,5 @@
 #include "slua_stdlib.h"
-#include "../include/slua_runtime.h"
+#include "../runtime/include/slua_runtime.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -19,7 +19,7 @@ double slua_log  (double x) { return log(x);          }
 double slua_log2 (double x) { return log2(x);         }
 double slua_exp  (double x) { return exp(x);          }
 double slua_inf  (void)     { return HUGE_VAL;         }
-double slua_nan  (void)     { return (double)(0.0/0.0);}
+double slua_nan  (void)     { return nan("");}
 
 /* ── String helpers ──────────────────────────────────────────────────────────── */
 

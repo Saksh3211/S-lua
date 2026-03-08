@@ -5,6 +5,9 @@
 #include "slua/Parser.h"
 #include "slua/Resolver.h"
 #include "slua/TypeChecker.h"
+#ifdef SLUA_HAS_LLVM
+#include "slua/IREmitter.h"
+#endif
 #include <fstream>
 #include <sstream>
 #include <iostream>

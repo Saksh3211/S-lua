@@ -658,7 +658,7 @@ void IREmitter::emit_assign(Assign& s, SourceLoc loc) {
 
     // Coerce to target type
     if (auto* pt = llvm::dyn_cast<llvm::AllocaInst>(lhs))
-        rhs = coerce(rhs, pt->getAllocatedType(), loc);
+            rhs = coerce(rhs, pt->getAllocatedType(), loc);
     else if (auto* gv = llvm::dyn_cast<llvm::GlobalVariable>(lhs))
         rhs = coerce(rhs, gv->getValueType(), loc);
 
@@ -1090,7 +1090,7 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
     if (!fn) return nullptr;
 
     std::vector<llvm::Value*> args;
-    auto& param_tys = fn->getFunctionType()->params();
+    auto param_tys = fn->getFunctionType()->params().vec();
     for (size_t i = 0; i < e.args.size(); i++) {
         llvm::Value* arg = emit_expr(*e.args[i]);
         if (!arg) return nullptr;
