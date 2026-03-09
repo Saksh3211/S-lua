@@ -11,7 +11,7 @@
 namespace slua {
 
 // =============================================================================
-//  SluaType — the internal type representation used by the type checker
+//  SluaType â€” the internal type representation used by the type checker
 //  (separate from the AST TypeNode which is just parse-tree syntax)
 // =============================================================================
 
@@ -29,7 +29,7 @@ enum class TypeKind {
     FUNC,
     // Generic instance e.g. Stack<int>
     GENERIC,
-    // Unknown — used during error recovery
+    // Unknown â€” used during error recovery
     ERROR,
 };
 
@@ -93,7 +93,7 @@ private:
     DiagEngine&    diag_;
     SemanticConfig cfg_;
 
-    // Type environment: name → SluaType
+    // Type environment: name â†’ SluaType
     // Mirrors the Resolver's scope but carries full type info
     struct TypeEnv {
         std::unordered_map<std::string, SluaTypePtr> vars;
@@ -116,7 +116,7 @@ private:
     void push_env();
     void pop_env();
 
-    // Convert AST TypeNode → SluaType
+    // Convert AST TypeNode â†’ SluaType
     SluaTypePtr resolve_type_node(const TypeNode* t);
 
     // Statement checking
@@ -139,7 +139,7 @@ private:
     void check_type_decl   (TypeDecl&   s, SourceLoc loc);
     void check_extern_decl (ExternDecl& s, SourceLoc loc);
 
-    // Expression checking — returns the inferred type
+    // Expression checking â€” returns the inferred type
     SluaTypePtr check_expr(Expr& e);
     SluaTypePtr check_binop      (Binop&      e, SourceLoc loc);
     SluaTypePtr check_unop       (Unop&       e, SourceLoc loc);

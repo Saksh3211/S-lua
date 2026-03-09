@@ -9,7 +9,7 @@
 
 namespace slua {
 
-// ── Symbol kinds ──────────────────────────────────────────────────────────────
+// â”€â”€ Symbol kinds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 enum class SymbolKind {
     LOCAL,      // local x
     CONST,      // const x
@@ -29,7 +29,7 @@ struct Symbol {
     bool         is_const    = false;
 };
 
-// ── Scope ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Scope â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class Scope {
 public:
     explicit Scope(Scope* parent = nullptr) : parent_(parent) {}
@@ -49,13 +49,13 @@ private:
     Scope* parent_;
 };
 
-// ── Resolver ──────────────────────────────────────────────────────────────────
+// â”€â”€ Resolver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class Resolver {
 public:
     Resolver(DiagEngine& diag, SemanticConfig cfg)
         : diag_(diag), cfg_(cfg) {}
 
-    // Entry point — resolves all names in the module.
+    // Entry point â€” resolves all names in the module.
     // Returns false if any errors were emitted.
     bool resolve(Module& mod);
 

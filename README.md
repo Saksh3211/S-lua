@@ -49,7 +49,7 @@ Example file extension:
 ---
 
 # Language 
-To compile : .\build\compiler\sluac.exe test_mine.slua -o test_mine.ll
+To compile : .\build\compiler\sluac.exe examples\test_mine.slua -o examples\test_mine.ll
 To run : clang test_mine.ll build\runtime\slua.lib -o test_mine.exe
 
 # Basic Language Example
