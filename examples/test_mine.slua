@@ -1,0 +1,12 @@
+--!!type:strict
+--!!mem:man
+
+function add(a:int64, b:int64):int64
+    return a + b
+end
+
+function main():int64
+    local result:int64 = add(10, 20)
+    print(result)
+    return result
+end

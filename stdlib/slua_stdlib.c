@@ -8,7 +8,7 @@
 #include <ctype.h>
 #include <float.h>
 
-/* ── Math ────────────────────────────────────────────────────────────────────── */
+/* â”€â”€ Math â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 double slua_sqrt (double x) { return sqrt(x);        }
 double slua_pow  (double b, double e) { return pow(b, e); }
@@ -21,11 +21,11 @@ double slua_exp  (double x) { return exp(x);          }
 double slua_inf  (void)     { return HUGE_VAL;         }
 double slua_nan  (void)     { return nan("");}
 
-/* ── String helpers ──────────────────────────────────────────────────────────── */
+/* â”€â”€ String helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* All returned strings are heap-allocated.
    The GC/manual memory story: callers own them. For now they leak in the
-   stdlib layer — real fix is integrating with slua_alloc in a future pass. */
+   stdlib layer â€” real fix is integrating with slua_alloc in a future pass. */
 
 int32_t slua_str_len(const char* s) {
     if (!s) return 0;
@@ -132,7 +132,7 @@ char* slua_str_trim(const char* s) {
     return buf;
 }
 
-/* ── I/O ─────────────────────────────────────────────────────────────────────── */
+/* â”€â”€ I/O â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 void slua_print_str_no_newline(const char* s) {
     if (s) fputs(s, stdout);
@@ -160,4 +160,36 @@ char* slua_read_line(void) {
 int32_t slua_read_char(void) {
     int c = fgetc(stdin);
     return (c == EOF) ? -1 : c;
+}
+
+/* -- I/O extended ------------------------------------------------------------ */
+
+void slua_io_clear(void) {
+    fputs("\033[2J\033[H", stdout);
+    fflush(stdout);
+}
+
+void slua_io_set_color(const char* color) {
+    if (!color) return;
+    if (strcmp(color, "red")     == 0) fputs("\033[31m", stdout);
+    else if (strcmp(color, "green")   == 0) fputs("\033[32m", stdout);
+    else if (strcmp(color, "yellow")  == 0) fputs("\033[33m", stdout);
+    else if (strcmp(color, "blue")    == 0) fputs("\033[34m", stdout);
+    else if (strcmp(color, "magenta") == 0) fputs("\033[35m", stdout);
+    else if (strcmp(color, "cyan")    == 0) fputs("\033[36m", stdout);
+    else if (strcmp(color, "white")   == 0) fputs("\033[37m", stdout);
+    else if (strcmp(color, "bold")    == 0) fputs("\033[1m",  stdout);
+    else fputs("\033[0m", stdout);
+}
+
+void slua_io_reset_color(void) {
+    fputs("\033[0m", stdout);
+}
+
+void slua_io_print_color(const char* text, const char* color) {
+    slua_io_set_color(color);
+    if (text) fputs(text, stdout);
+    slua_io_reset_color();
+    fputs("\n", stdout);
+    fflush(stdout);
 }

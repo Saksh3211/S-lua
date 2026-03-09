@@ -18,6 +18,7 @@ SemanticConfig SemanticConfig::for_mode(CompileMode m) {
         c.emit_null_propagation = false;
         c.emit_tag_dispatch_warn= false;
         c.allow_implicit_dynamic= false;
+        c.mem_mode              = MemoryMode::Manual;
     } else {
         c.uninitialized_var     = DB::WARNING;
         c.type_annotation_viol  = DB::WARNING;
@@ -29,6 +30,7 @@ SemanticConfig SemanticConfig::for_mode(CompileMode m) {
         c.emit_null_propagation = true;
         c.emit_tag_dispatch_warn= true;
         c.allow_implicit_dynamic= true;
+        c.mem_mode              = MemoryMode::Manual;
     }
     return c;
 }

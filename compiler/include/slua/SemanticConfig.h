@@ -20,6 +20,8 @@ struct SemanticConfig {
     bool emit_tag_dispatch_warn;
     bool allow_implicit_dynamic;
 
+    MemoryMode mem_mode;
+
     static SemanticConfig for_mode(CompileMode m);
 };
 

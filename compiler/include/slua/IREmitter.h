@@ -26,12 +26,12 @@
 
 namespace slua {
 
-// ── Defer stack entry ─────────────────────────────────────────────────────────
+// â”€â”€ Defer stack entry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 struct DeferEntry {
     std::function<void()> emit_fn;
 };
 
-// ── Code generator ────────────────────────────────────────────────────────────
+// â”€â”€ Code generator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class IREmitter {
 public:
     IREmitter(DiagEngine& diag, SemanticConfig cfg,
@@ -57,8 +57,8 @@ private:
     std::unique_ptr<llvm::Module>  mod_;
     llvm::IRBuilder<>              builder_;
 
-    // ── Type environment ──────────────────────────────────────────────────────
-    // name → llvm::AllocaInst* (stack variable)
+    // â”€â”€ Type environment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // name â†’ llvm::AllocaInst* (stack variable)
     struct VarEnv {
         std::unordered_map<std::string, llvm::Value*> vars;
         VarEnv* parent = nullptr;
@@ -74,34 +74,35 @@ private:
     void push_env();
     void pop_env();
 
-    // ── Type registry: slua type name → llvm::Type* ───────────────────────────
+    // â”€â”€ Type registry: slua type name â†’ llvm::Type* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     std::unordered_map<std::string, llvm::StructType*> struct_types_;
 
-    // ── Function registry: name → llvm::Function* ────────────────────────────
+    // â”€â”€ Function registry: name â†’ llvm::Function* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     std::unordered_map<std::string, llvm::Function*> functions_;
+    std::unordered_set<std::string>                   known_imports_;
 
-    // ── Defer stack (per-function, LIFO) ─────────────────────────────────────
+    // â”€â”€ Defer stack (per-function, LIFO) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     std::vector<std::vector<DeferEntry>> defer_stack_;
     void push_defer_scope();
     void pop_defer_scope();  // emits deferred code
     void add_defer(std::function<void()> fn);
 
-    // ── Current function context ──────────────────────────────────────────────
+    // â”€â”€ Current function context â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     llvm::Function*   cur_func_     = nullptr;
     llvm::BasicBlock* cur_ret_bb_   = nullptr;  // function exit block
     llvm::AllocaInst* cur_ret_slot_ = nullptr;  // alloca for return value
     CompileMode       cur_mode_     = CompileMode::NONSTRICT;
 
-    // ── LLVM type helpers ─────────────────────────────────────────────────────
+    // â”€â”€ LLVM type helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     llvm::Type* llvm_type(const TypeNode* t);
     llvm::Type* llvm_type_named(const std::string& name);
     llvm::Type* tagvalue_type();   // 16-byte {i8, [7 x i8], i64} for dynamic
 
-    // ── Runtime function declarations ─────────────────────────────────────────
+    // â”€â”€ Runtime function declarations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     void declare_runtime();
     llvm::Function* get_runtime_fn(const std::string& name);
 
-    // ── Statement emitters ────────────────────────────────────────────────────
+    // â”€â”€ Statement emitters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     void emit_stmt       (Stmt& s);
     void emit_local_decl (LocalDecl&  s, SourceLoc loc);
     void emit_global_decl(GlobalDecl& s, SourceLoc loc);
@@ -121,7 +122,7 @@ private:
     void emit_type_decl  (TypeDecl&   s, SourceLoc loc);
     void emit_extern_decl(ExternDecl& s, SourceLoc loc);
 
-    // ── Expression emitters ───────────────────────────────────────────────────
+    // â”€â”€ Expression emitters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Returns the LLVM Value* for the expression result
     llvm::Value* emit_expr        (Expr& e);
     llvm::Value* emit_binop       (Binop&      e, SourceLoc loc);
@@ -136,16 +137,16 @@ private:
     llvm::Value* emit_addr_expr   (AddrExpr&   e, SourceLoc loc);
     llvm::Value* emit_cast_expr   (CastExpr&   e, SourceLoc loc);
 
-    // ── Pointer to an lvalue (for assignment targets) ─────────────────────────
+    // â”€â”€ Pointer to an lvalue (for assignment targets) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     llvm::Value* emit_lvalue(Expr& e);
 
-    // ── Helper: alloca in function entry block ────────────────────────────────
+    // â”€â”€ Helper: alloca in function entry block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     llvm::AllocaInst* create_alloca(llvm::Type* ty, const std::string& name);
 
-    // ── Helper: emit slua_panic call ─────────────────────────────────────────
+    // â”€â”€ Helper: emit slua_panic call â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     void emit_panic(const std::string& msg, SourceLoc loc);
 
-    // ── Helper: coerce value between numeric types ────────────────────────────
+    // â”€â”€ Helper: coerce value between numeric types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     llvm::Value* coerce(llvm::Value* v, llvm::Type* to, SourceLoc loc);
 };
 

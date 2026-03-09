@@ -1,6 +1,5 @@
-examples/
-*.ll
-*.exe
+examples/*.ll
+examples/*.exe
 
 build/
 *.o

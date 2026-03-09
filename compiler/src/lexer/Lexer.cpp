@@ -51,7 +51,64 @@ static const std::unordered_map<std::string, TokenKind> KEYWORDS = {
     {"comptime",   TokenKind::TK_COMPTIME},
 };
 
+Directives detect_directives(const std::string& source,
+                              const std::string& filename) {
+    Directives d;
+    size_t pos = 0;
+
+    if (source.size() >= 3 &&
+        (unsigned char)source[0] == 0xEF &&
+        (unsigned char)source[1] == 0xBB &&
+        (unsigned char)source[2] == 0xBF)
+        pos = 3;
+
+    bool found_type = false;
+
+    while (pos < source.size()) {
+        size_t eol = source.find('\n', pos);
+        if (eol == std::string::npos) eol = source.size();
+        std::string line = source.substr(pos, eol - pos);
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+
+        if (line.substr(0, 4) != "--!!") break;
+
+        if (line == "--!!strict" || line == "--!!type:strict") {
+            d.type = CompileMode::STRICT;
+            found_type = true;
+            if (line == "--!!strict")
+                fprintf(stderr, "[W0002] %s:  '--!!strict' is deprecated, use '--!!type:strict'\n",
+                        filename.c_str());
+        } else if (line == "--!!nonstrict" || line == "--!!type:nonstrict") {
+            d.type = CompileMode::NONSTRICT;
+            found_type = true;
+            if (line == "--!!nonstrict")
+                fprintf(stderr, "[W0002] %s:  '--!!nonstrict' is deprecated, use '--!!type:nonstrict'\n",
+                        filename.c_str());
+        } else if (line == "--!!mem:auto") {
+            d.mem = MemoryMode::Auto;
+        } else if (line == "--!!mem:man") {
+            d.mem = MemoryMode::Manual;
+        } else {
+            fprintf(stderr, "[E0003] %s: unknown directive: '%s'\n",
+                    filename.c_str(), line.c_str());
+            exit(1);
+        }
+        pos = eol + 1;
+    }
+
+    if (!found_type)
+        fprintf(stderr, "[W0001] %s: missing --!!type directive, defaulting to nonstrict\n",
+                filename.c_str());
+
+    return d;
+}
+
 CompileMode detect_mode(const std::string& source, const std::string& filename) {
+    return detect_directives(source, filename).type;
+}
+
+[[maybe_unused]]
+static CompileMode detect_mode_unused_sentinel(const std::string& source, const std::string& filename) {
     // Strip UTF-8 BOM
     size_t start = 0;
     if (source.size() >= 3 &&
@@ -72,12 +129,12 @@ CompileMode detect_mode(const std::string& source, const std::string& filename) 
     if (line == "--!!nonstrict") return CompileMode::NONSTRICT;
 
     if (line.substr(0, 4) == "--!!") {
-        fprintf(stderr, "[E0003] %s:1:1 — malformed mode directive: '%s'\n",
+        fprintf(stderr, "[E0003] %s:1:1 â€” malformed mode directive: '%s'\n",
                 filename.c_str(), line.c_str());
         exit(1);
     }
 
-    fprintf(stderr, "[W0001] %s:1:1 — missing mode directive, defaulting to nonstrict\n",
+    fprintf(stderr, "[W0001] %s:1:1 â€” missing mode directive, defaulting to nonstrict\n",
             filename.c_str());
     return CompileMode::NONSTRICT;
 }

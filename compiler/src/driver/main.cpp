@@ -272,7 +272,8 @@ int main(int argc, char** argv) {
     std::string source = read_file(input_file);
 
     // Stage 1 mode detection
-    slua::CompileMode mode = slua::detect_mode(source, input_file);
+    slua::Directives directives = slua::detect_directives(source, input_file);
+    slua::CompileMode mode = directives.type;
     if (override_strict)     mode = slua::CompileMode::STRICT;
     if (override_nonstrict)  mode = slua::CompileMode::NONSTRICT;
     fprintf(stderr, "sluac: mode = %s\n",
@@ -281,8 +282,9 @@ int main(int argc, char** argv) {
     // Stage 2 diag + config
     slua::DiagEngine     diag(mode);
     slua::SemanticConfig cfg = slua::SemanticConfig::for_mode(mode);
+    cfg.mem_mode = directives.mem;
 
-    // Stage 3 ï¿½ token dump
+    // Stage 3 Ã¯Â¿Â½ token dump
     if (emit_tokens) {
         slua::Lexer lexer(source, input_file, mode);
         while (!lexer.at_eof()) {

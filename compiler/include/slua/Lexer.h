@@ -41,6 +41,16 @@ struct Token {
 
 enum class CompileMode { STRICT, NONSTRICT };
 
+enum class MemoryMode { Manual, Auto };
+
+struct Directives {
+    CompileMode type = CompileMode::NONSTRICT;
+    MemoryMode  mem  = MemoryMode::Manual;
+};
+
+Directives detect_directives(const std::string& source,
+                              const std::string& filename);
+
 /// Scans the first raw line to detect --!!strict / --!!nonstrict.
 /// Returns NONSTRICT and emits W0001 if directive is missing.
 CompileMode detect_mode(const std::string& source, const std::string& filename);

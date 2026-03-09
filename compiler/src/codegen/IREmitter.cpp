@@ -48,7 +48,7 @@ void IREmitter::push_defer_scope() {
 void IREmitter::pop_defer_scope() {
     if (defer_stack_.empty()) return;
     auto& scope = defer_stack_.back();
-    // LIFO ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â emit in reverse order
+    // LIFO ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â emit in reverse order
     for (int i = (int)scope.size() - 1; i >= 0; i--)
         scope[i].emit_fn();
     defer_stack_.pop_back();
@@ -60,7 +60,7 @@ void IREmitter::add_defer(std::function<void()> fn) {
 }
 
 // =============================================================================
-//  alloca helper ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â always in entry block so mem2reg can promote
+//  alloca helper ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â always in entry block so mem2reg can promote
 // =============================================================================
 
 llvm::AllocaInst* IREmitter::create_alloca(llvm::Type* ty,
@@ -95,7 +95,7 @@ llvm::Type* IREmitter::llvm_type_named(const std::string& name) {
     auto it = struct_types_.find(name);
     if (it != struct_types_.end()) return it->second;
 
-    // Unknown ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â fall back to i64
+    // Unknown ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â fall back to i64
     return llvm::Type::getInt64Ty(ctx_);
 }
 
@@ -115,12 +115,12 @@ llvm::Type* IREmitter::llvm_type(const TypeNode* t) {
             if (v.name == "ptr" && !v.args.empty())
                 return llvm::PointerType::getUnqual(
                     llvm_type(v.args[0].get()));
-            // Other generics ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ opaque pointer
+            // Other generics ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ opaque pointer
             return llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
         }
 
         else if constexpr (std::is_same_v<T, RecordType>) {
-            // Anonymous struct ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â build inline
+            // Anonymous struct ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â build inline
             std::vector<llvm::Type*> fields;
             for (auto& [fn, ft] : v.fields)
                 fields.push_back(llvm_type(ft.get()));
@@ -148,7 +148,7 @@ llvm::Type* IREmitter::llvm_type(const TypeNode* t) {
     }, t->v);
 }
 
-// TagValue ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {i8 tag, [7 x i8] pad, i64 val}
+// TagValue ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {i8 tag, [7 x i8] pad, i64 val}
 llvm::Type* IREmitter::tagvalue_type() {
     static llvm::StructType* tv = nullptr;
     if (!tv) {
@@ -204,6 +204,15 @@ void IREmitter::declare_runtime() {
     declare("slua_time_ns",     i64,   {});
     // void slua_exit(int)
     declare("slua_exit",        voidT, {i32});
+
+    declare("slua_read_line",        i8p,   {});
+    declare("slua_read_char",        i32,   {});
+    declare("slua_io_clear",         voidT, {});
+    declare("slua_io_set_color",     voidT, {i8p});
+    declare("slua_io_reset_color",   voidT, {});
+    declare("slua_io_print_color",   voidT, {i8p, i8p});
+    declare("slua_print_str_no_newline", voidT, {i8p});
+    declare("slua_flush",            voidT, {});
 }
 
 llvm::Function* IREmitter::get_runtime_fn(const std::string& name) {
@@ -220,7 +229,7 @@ bool IREmitter::emit(slua::Module& mod) {
     cur_mode_ = mod.mode;
     push_env();
 
-    // Pass 1 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â forward-declare all top-level functions so they can call
+    // Pass 1 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â forward-declare all top-level functions so they can call
     // each other regardless of order
     for (auto& s : mod.stmts) {
         if (auto* fd = std::get_if<FuncDecl>(&s->v)) {
@@ -252,7 +261,7 @@ bool IREmitter::emit(slua::Module& mod) {
         }
     }
 
-    // Pass 2 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â emit bodies
+    // Pass 2 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â emit bodies
     for (auto& s : mod.stmts)
         emit_stmt(*s);
 
@@ -345,7 +354,12 @@ void IREmitter::emit_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, ExternDecl>)   emit_extern_decl(v, s.loc);
         else if constexpr (std::is_same_v<T, BreakStmt>)    { /* handled by for/while */ }
         else if constexpr (std::is_same_v<T, ContinueStmt>) { /* handled by for/while */ }
-        else if constexpr (std::is_same_v<T, ImportDecl>)   { /* future */ }
+        else if constexpr (std::is_same_v<T, ImportDecl>) {
+            if (v.module_name == "io" || v.module_name == "math" ||
+                v.module_name == "string") {
+                known_imports_.insert(v.module_name);
+            }
+        }
     }, s.v);
 }
 
@@ -395,7 +409,7 @@ void IREmitter::emit_global_decl(GlobalDecl& s, SourceLoc loc) {
 }
 
 // =============================================================================
-//  Function declaration ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â emit full body
+//  Function declaration ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â emit full body
 // =============================================================================
 
 void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
@@ -509,7 +523,7 @@ void IREmitter::emit_if_stmt(IfStmt& s) {
 
         builder_.CreateBr(end_bb);
 
-    // Elseif chain ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â each becomes a nested if in the else block
+    // Elseif chain ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â each becomes a nested if in the else block
     builder_.SetInsertPoint(else_bb);
     for (auto& [ei_cond, ei_body] : s.elseif_clauses) {
         llvm::Value* eic = emit_expr(*ei_cond);
@@ -676,7 +690,7 @@ void IREmitter::emit_call_stmt(CallStmt& s) {
 }
 
 void IREmitter::emit_defer_stmt(DeferStmt& s) {
-    // Capture the statement pointer ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â emit later when scope exits
+    // Capture the statement pointer ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â emit later when scope exits
     Stmt* raw = s.action.get();
     add_defer([this, raw]() {
         if (raw) emit_stmt(*raw);
@@ -849,7 +863,7 @@ llvm::Value* IREmitter::emit_expr(Expr& e) {
         }
 
         else if constexpr (std::is_same_v<T, FuncExpr>) {
-            // Anonymous function ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â emit as a local function
+            // Anonymous function ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â emit as a local function
             static int anon_id = 0;
             std::string name = "__anon_" + std::to_string(anon_id++);
 
@@ -1019,7 +1033,7 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
     if (e.op == "<<") return builder_.CreateShl(lhs, rhs);
     if (e.op == ">>") return builder_.CreateAShr(lhs, rhs);
 
-    // String concat ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â call runtime (not fully implemented here)
+    // String concat ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â call runtime (not fully implemented here)
     if (e.op == "..") {
         // For now return lhs (string concat needs runtime helper)
         return lhs;
@@ -1048,7 +1062,7 @@ llvm::Value* IREmitter::emit_unop(Unop& e, SourceLoc loc) {
         return builder_.CreateNot(val);
     }
     if (e.op == "#") {
-        // Length operator on strings ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â call strlen via runtime
+        // Length operator on strings ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â call strlen via runtime
         // Simplified: return 0 for now
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
     }
@@ -1110,7 +1124,7 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
 }
 
 llvm::Value* IREmitter::emit_method_call(MethodCall& e, SourceLoc loc) {
-    // Method calls ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â simplified, treat as dynamic for now
+    // Method calls ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â simplified, treat as dynamic for now
     emit_expr(*e.obj);
     for (auto& arg : e.args) emit_expr(*arg);
     return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
@@ -1132,7 +1146,7 @@ llvm::Value* IREmitter::emit_field(Field& e, SourceLoc loc) {
         struct_ty = gv->getValueType();
 
     if (!struct_ty || !struct_ty->isStructTy()) {
-        // Can't resolve statically ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â return 0
+        // Can't resolve statically ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â return 0
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
     }
 
@@ -1160,7 +1174,7 @@ llvm::Value* IREmitter::emit_index(Index& e, SourceLoc loc) {
 }
 
 // =============================================================================
-//  Table constructor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â allocate struct on heap
+//  Table constructor ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â allocate struct on heap
 // =============================================================================
 
 llvm::Value* IREmitter::emit_table_ctor(TableCtor& e, SourceLoc loc) {
@@ -1170,7 +1184,7 @@ llvm::Value* IREmitter::emit_table_ctor(TableCtor& e, SourceLoc loc) {
             llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_)));
 
     // Named fields: emit as a stack-allocated struct
-    // (simplified ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â returns pointer to local struct)
+    // (simplified ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â returns pointer to local struct)
     auto* i64 = llvm::Type::getInt64Ty(ctx_);
     auto* i8p = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
 
@@ -1237,7 +1251,7 @@ llvm::Value* IREmitter::emit_cast_expr(CastExpr& e, SourceLoc loc) {
 }
 
 // =============================================================================
-//  LValue ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â returns pointer to storage location
+//  LValue ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â returns pointer to storage location
 // =============================================================================
 
 llvm::Value* IREmitter::emit_lvalue(Expr& e) {
@@ -1277,15 +1291,15 @@ llvm::Value* IREmitter::coerce(llvm::Value* v, llvm::Type* to,
 
     llvm::Type* from = v->getType();
 
-    // int ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ double
+    // int ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ double
     if (from->isIntegerTy() && to->isDoubleTy())
         return builder_.CreateSIToFP(v, to);
 
-    // double ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ int
+    // double ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ int
     if (from->isDoubleTy() && to->isIntegerTy())
         return builder_.CreateFPToSI(v, to);
 
-    // int ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ int (sign extend or truncate)
+    // int ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ int (sign extend or truncate)
     if (from->isIntegerTy() && to->isIntegerTy()) {
         unsigned fb = from->getIntegerBitWidth();
         unsigned tb = to->getIntegerBitWidth();
@@ -1294,19 +1308,19 @@ llvm::Value* IREmitter::coerce(llvm::Value* v, llvm::Type* to,
         return v;
     }
 
-    // ptr ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ptr
+    // ptr ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ptr
     if (from->isPointerTy() && to->isPointerTy())
         return builder_.CreateBitCast(v, to);
 
-    // int ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ ptr
+    // int ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ptr
     if (from->isIntegerTy() && to->isPointerTy())
         return builder_.CreateIntToPtr(v, to);
 
-    // ptr ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ int
+    // ptr ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ int
     if (from->isPointerTy() && to->isIntegerTy())
         return builder_.CreatePtrToInt(v, to);
 
-    // bool ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ int
+    // bool ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ int
     if (from->isIntegerTy(1) && to->isIntegerTy())
         return builder_.CreateZExt(v, to);
 
