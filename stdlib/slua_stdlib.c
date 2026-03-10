@@ -183,3 +183,14 @@ void slua_io_print_color(const char* text, const char* color) {
     fputs("\n", stdout);
     fflush(stdout);
 }
+char* slua_str_concat(const char* a, const char* b) {
+    if (!a) a = "";
+    if (!b) b = "";
+    size_t la = strlen(a), lb = strlen(b);
+    char* buf = (char*)malloc(la + lb + 1);
+    if (!buf) return NULL;
+    memcpy(buf, a, la);
+    memcpy(buf + la, b, lb);
+    buf[la + lb] = '\0';
+    return buf;
+}

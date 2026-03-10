@@ -111,7 +111,6 @@ _Noreturn void slua_panic(const char* msg, const char* file, int line);
 #define SLUA_PANIC(msg) slua_panic((msg), __FILE__, __LINE__)
 
 /* -- String operations ----------------------------------------------------- */
-SluaString* slua_str_concat(SluaString* a, SluaString* b);
 int         slua_str_len(SluaString* s);
 SluaString* slua_str_from_cstr(const char* cstr);
 const char* slua_str_cstr(SluaString* s);

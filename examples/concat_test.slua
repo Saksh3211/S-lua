@@ -1,0 +1,12 @@
+--!!type:strict
+--!!mem:man
+
+import io
+
+function main():int64
+    local a:string = "saksh3211"
+    local msg:string = "hi "..a.." hru"
+    print(msg)
+    io.print_color("hello "..a, "cyan")
+    return 0
+end

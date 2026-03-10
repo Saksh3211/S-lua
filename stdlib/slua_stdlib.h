@@ -42,6 +42,7 @@ void     slua_io_clear             (void);
 void     slua_io_print_color       (const char* text, const char* color);
 void     slua_io_set_color         (const char* color);
 void     slua_io_reset_color       (void);
+char*    slua_str_concat           (const char* a, const char* b);
 
 #ifdef __cplusplus
 }
