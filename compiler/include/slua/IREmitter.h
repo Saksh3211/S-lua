@@ -102,7 +102,7 @@ private:
     llvm::Value* emit_call_expr   (Call&       e, SourceLoc loc);
     llvm::Value* emit_method_call (MethodCall& e, SourceLoc loc);
     llvm::Value* emit_field       (Field&      e, SourceLoc loc);
-    llvm::Value* emit_index       (Index&      e, SourceLoc loc);
+    llvm::Value* emit_index       (Index&      e, SourceLoc loc, TypeNode* result_type = nullptr);
     llvm::Value* emit_table_ctor  (TableCtor&  e, SourceLoc loc);
     llvm::Value* emit_alloc_expr  (AllocExpr&  e, SourceLoc loc);
     llvm::Value* emit_deref_expr  (DerefExpr&  e, SourceLoc loc);
@@ -120,3 +120,4 @@ private:
 } 
 
 #endif 
+

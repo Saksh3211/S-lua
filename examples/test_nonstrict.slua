@@ -1,4 +1,5 @@
---!!nonstrict
+--!!type:nonstrict
+
 local function square(a)
     return a*a
 end

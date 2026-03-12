@@ -72,8 +72,8 @@ llvm::Type* IREmitter::llvm_type_named(const std::string& name) {
         name == "double")                   return llvm::Type::getDoubleTy(ctx_);
     if (name == "bool")                     return llvm::Type::getInt1Ty(ctx_);
     if (name == "void")                     return llvm::Type::getVoidTy(ctx_);
-    if (name == "string")                   return llvm::PointerType::getUnqual(
-                                                llvm::Type::getInt8Ty(ctx_));
+    if (name == "string" || name == "table")
+        return llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
     if (name == "any")                      return tagvalue_type();
 
     auto it = struct_types_.find(name);
@@ -803,7 +803,7 @@ llvm::Value* IREmitter::emit_expr(Expr& e) {
         else if constexpr (std::is_same_v<T, Field>)
             return emit_field(v, e.loc);
         else if constexpr (std::is_same_v<T, Index>)
-            return emit_index(v, e.loc);
+            return emit_index(v, e.loc, e.inferred_type.get());
         else if constexpr (std::is_same_v<T, TableCtor>)
             return emit_table_ctor(v, e.loc);
         else if constexpr (std::is_same_v<T, AllocExpr>)
@@ -1210,7 +1210,7 @@ llvm::Value* IREmitter::emit_field(Field& e, SourceLoc loc) {
     return builder_.CreateLoad(field_ty, gep, e.name);
 }
 
-llvm::Value* IREmitter::emit_index(Index& e, SourceLoc loc) {
+llvm::Value* IREmitter::emit_index(Index& e, SourceLoc loc, TypeNode* result_type) {
     llvm::Value* base = emit_expr(*e.table);
     llvm::Value* key  = emit_expr(*e.key);
     if (!base || !key) return nullptr;
@@ -1219,8 +1219,8 @@ llvm::Value* IREmitter::emit_index(Index& e, SourceLoc loc) {
     auto* i8p = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
 
     std::string inferred;
-    if (e.table->inferred_type) {
-        if (auto* p = std::get_if<PrimitiveType>(&e.table->inferred_type->v))
+    if (result_type) {
+        if (auto* p = std::get_if<PrimitiveType>(&result_type->v))
             inferred = p->name;
     }
 
@@ -1397,3 +1397,5 @@ llvm::Value* IREmitter::coerce(llvm::Value* v, llvm::Type* to,
 }
 
 #endif
+
+

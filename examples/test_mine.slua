@@ -6,15 +6,20 @@ function add(a:int64, b:int64):int64
 end
 
 function retable():table
-    local t:table= {1,2,3}
+    local t:table= {}
+    t[1]=2
+    t[2]=5
     return t
 end
 
 function main():int64
     local t:table = retable()
     local a:int64 = t[1]
-    local b:int64 = t[3]
+    local b:int64 = t[2]
     local result:int64 = add(a, b)
+    t["a"]="abc"
     print(result)
+    local str:string = t["a"]
+    print(str)
     return 0
 end
