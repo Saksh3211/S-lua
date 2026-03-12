@@ -25,4 +25,5 @@ struct SemanticConfig {
     static SemanticConfig for_mode(CompileMode m);
 };
 
-} // namespace slua
+} 
+

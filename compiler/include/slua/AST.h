@@ -8,15 +8,15 @@
 
 namespace slua {
 
-// -- Type nodes ----------------------------------------------------------------
+
 
 struct TypeNode;
 using TypeNodePtr = std::unique_ptr<TypeNode>;
 
-struct PrimitiveType { std::string name; };              // int, number, string, bool, void, any
-struct OptionalType  { TypeNodePtr inner; };             // T?
+struct PrimitiveType { std::string name; };              
+struct OptionalType  { TypeNodePtr inner; };             
 struct UnionType     { std::vector<TypeNodePtr> members; };
-struct PtrType       { TypeNodePtr pointee; };           // ptr<T>
+struct PtrType       { TypeNodePtr pointee; };           
 struct FuncType      { std::vector<TypeNodePtr> params; TypeNodePtr ret; };
 struct RecordType    { std::vector<std::pair<std::string, TypeNodePtr>> fields; };
 struct GenericType   { std::string name; std::vector<TypeNodePtr> args; };
@@ -29,7 +29,7 @@ struct TypeNode {
     SourceLoc loc;
 };
 
-// -- Expression nodes ---------------------------------------------------------
+
 
 struct Expr;
 using ExprPtr = std::unique_ptr<Expr>;
@@ -66,10 +66,10 @@ struct Expr {
         CastExpr, TypeofExpr, SizeofExpr>;
     Variant v;
     SourceLoc loc;
-    TypeNodePtr inferred_type; // filled by type-checker
+    TypeNodePtr inferred_type; 
 };
 
-// -- Statement nodes ----------------------------------------------------------
+
 
 struct Stmt;
 using StmtPtr = std::unique_ptr<Stmt>;
@@ -114,7 +114,7 @@ struct Stmt {
     SourceLoc loc;
 };
 
-// -- Module root ---------------------------------------------------------------
+
 
 struct Module {
     std::string           filename;
@@ -122,4 +122,5 @@ struct Module {
     std::vector<StmtPtr>  stmts;
 };
 
-} // namespace slua
+} 
+

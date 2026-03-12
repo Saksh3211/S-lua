@@ -9,7 +9,7 @@ enum class DiagLevel { NOTE, WARNING, ERROR };
 
 struct Diagnostic {
     DiagLevel   level;
-    std::string code;     // e.g., "E0011"
+    std::string code;     
     std::string message;
     SourceLoc   loc;
 };
@@ -36,4 +36,5 @@ private:
     int                       warn_count_  = 0;
 };
 
-} // namespace slua
+} 
+

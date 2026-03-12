@@ -163,8 +163,7 @@ static void print_stmt(const slua::Stmt* s, int indent) {
             print_expr(v.call.get(), indent+1);
         }
         else if constexpr (std::is_same_v<T, slua::FuncDecl>) {
-            printf("%sFunc(%s%s, %zu params)\n",ind(indent).c_str(),
-                   v.exported ? "export " : "",v.name.c_str(), v.params.size());
+            printf("%sFunc(%s%s, %zu params)\n",ind(indent).c_str(),v.exported ? "export " : "",v.name.c_str(), v.params.size());
             if (v.ret_type) print_type(v.ret_type.get(), indent+1);
             for (auto& st : v.body) print_stmt(st.get(), indent+1);
         }
@@ -265,40 +264,32 @@ int main(int argc, char** argv) {
         else { fprintf(stderr, "sluac: unknown option '%s'\n", argv[i]); return 1; }
     }
     if (input_file.empty()) { print_usage(); return 1; }
-
     std::string source = read_file(input_file);
-
     
     slua::Directives directives = slua::detect_directives(source, input_file);
     slua::CompileMode mode = directives.type;
     if (override_strict)     mode = slua::CompileMode::STRICT;
     if (override_nonstrict)  mode = slua::CompileMode::NONSTRICT;
-    fprintf(stderr, "sluac: mode = %s\n",
-            mode == slua::CompileMode::STRICT ? "strict" : "nonstrict");
-
+    fprintf(stderr, "sluac: mode = %s\n",mode == slua::CompileMode::STRICT ? "strict" : "nonstrict");
     
     slua::DiagEngine     diag(mode);
     slua::SemanticConfig cfg = slua::SemanticConfig::for_mode(mode);
     cfg.mem_mode = directives.mem;
-
     
     if (emit_tokens) {
         slua::Lexer lexer(source, input_file, mode);
         while (!lexer.at_eof()) {
             slua::Token tok = lexer.next();
-            printf("  [%3d:%3d] kind=%-5d  '%s'\n",
-                   tok.loc.line, tok.loc.col, (int)tok.kind, tok.text.c_str());
+            printf("  [%3d:%3d] kind=%-5d  '%s'\n",tok.loc.line, tok.loc.col, (int)tok.kind, tok.text.c_str());
         }
         return 0;
     }
-
     
     slua::Lexer  lexer(source, input_file, mode);
     slua::Parser parser(lexer, diag, mode);
     auto mod = parser.parse_module(input_file);
 
     if (diag.has_errors()) { diag.dump_all(); return 1; }
-
     
     {
         slua::Resolver resolver(diag, cfg);
@@ -317,31 +308,24 @@ int main(int argc, char** argv) {
 
     
     if (emit_ast) {
-        printf("Module: %s  mode=%s  stmts=%zu\n",
-               mod->filename.c_str(),
-               mod->mode == slua::CompileMode::STRICT ? "strict" : "nonstrict",
-               mod->stmts.size());
+        printf("Module: %s  mode=%s  stmts=%zu\n",mod->filename.c_str(),
+            mod->mode == slua::CompileMode::STRICT ? "strict" : "nonstrict",
+            mod->stmts.size());
         for (auto& s : mod->stmts) print_stmt(s.get(), 1);
         return 0;
     }
-
 #ifdef SLUA_HAS_LLVM
-    
     {
         fprintf(stderr, "sluac: creating emitter\n"); fflush(stderr);
         slua::IREmitter emitter(diag, cfg, input_file);
         fprintf(stderr, "DBG: calling emit\n"); fflush(stderr);
-
         if (!emitter.emit(*mod)) { diag.dump_all(); return 1; }
-
-
 
         if (output_file == "a.out") output_file = "output.ll";
         fprintf(stderr, "sluac: writing ll\n"); fflush(stderr);
         if (!emitter.write_ll(output_file)) return 1;
         fprintf(stderr, "sluac: wrote IR to %s\n", output_file.c_str());
     }
-
     return 0;
 #else
     fprintf(stderr, "sluac: LLVM not available\n");

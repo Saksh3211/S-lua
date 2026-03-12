@@ -9,37 +9,37 @@
 
 namespace slua {
 
-// â”€â”€ Symbol kinds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 enum class SymbolKind {
-    LOCAL,      // local x
-    CONST,      // const x
-    GLOBAL,     // global x
-    PARAM,      // function parameter
-    FUNCTION,   // function declaration
-    TYPE,       // type alias
-    EXTERN,     // extern function
+    LOCAL,      
+    CONST,      
+    GLOBAL,     
+    PARAM,      
+    FUNCTION,   
+    TYPE,       
+    EXTERN,     
 };
 
 struct Symbol {
     std::string  name;
     SymbolKind   kind;
-    TypeNode*    type_node;   // may be null (untyped / not yet resolved)
+    TypeNode*    type_node;   
     SourceLoc    decl_loc;
     bool         initialized = false;
     bool         is_const    = false;
 };
 
-// â”€â”€ Scope â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 class Scope {
 public:
     explicit Scope(Scope* parent = nullptr) : parent_(parent) {}
 
-    // Define a new symbol in this scope.
-    // Returns false (and emits error) if already defined here.
+    
+    
     bool define(const std::string& name, Symbol sym,
                 DiagEngine& diag, CompileMode mode);
 
-    // Look up a symbol by name, walking parent chain.
+    
     Symbol* lookup(const std::string& name);
 
     Scope* parent() const { return parent_; }
@@ -49,36 +49,36 @@ private:
     Scope* parent_;
 };
 
-// â”€â”€ Resolver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 class Resolver {
 public:
     Resolver(DiagEngine& diag, SemanticConfig cfg)
         : diag_(diag), cfg_(cfg) {}
 
-    // Entry point â€” resolves all names in the module.
-    // Returns false if any errors were emitted.
+    
+    
     bool resolve(Module& mod);
 
 private:
     DiagEngine&    diag_;
     SemanticConfig cfg_;
 
-    // Scope stack
+    
     Scope*  current_scope_ = nullptr;
 
-    // Current function return type (for return checking)
+    
     TypeNode* current_ret_type_ = nullptr;
 
-    // Scope management
+    
     void push_scope();
     void pop_scope();
 
-    // Visitors
+    
     void resolve_stmt(Stmt& s);
     void resolve_expr(Expr& e);
     void resolve_type(TypeNode* t);
 
-    // Statement helpers
+    
     void resolve_local_decl   (LocalDecl&   s, SourceLoc loc);
     void resolve_global_decl  (GlobalDecl&  s, SourceLoc loc);
     void resolve_func_decl    (FuncDecl&    s, SourceLoc loc);
@@ -97,7 +97,7 @@ private:
     void resolve_assign       (Assign&      s, SourceLoc loc);
     void resolve_call_stmt    (CallStmt&    s);
 
-    // Expression helpers
+    
     void resolve_ident        (Ident&       e, Expr& node);
     void resolve_binop        (Binop&       e);
     void resolve_unop         (Unop&        e);
@@ -115,4 +115,4 @@ private:
     void resolve_sizeof_expr  (SizeofExpr&  e);
 };
 
-} // namespace slua
+} 

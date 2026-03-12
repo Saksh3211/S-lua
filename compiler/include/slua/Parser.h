@@ -7,7 +7,6 @@
 #include <string>
 
 namespace slua {
-
     class Parser {
     public:
         Parser(Lexer& lexer, DiagEngine& diag, CompileMode mode);
@@ -20,14 +19,14 @@ namespace slua {
         Token       cur_;
         Token       peek_;
 
-        // Core helpers
+        
         Token       advance();
         Token       expect(TokenKind k, const std::string& ctx);
         bool        check(TokenKind k) const;
         bool        match(TokenKind k);
         std::string token_kind_name(TokenKind k);
 
-        // Statements
+        
         StmtPtr parse_stmt();
         StmtPtr parse_assign_or_call();
         StmtPtr parse_local_decl();
@@ -44,7 +43,7 @@ namespace slua {
         StmtPtr parse_type_decl();
         StmtPtr parse_extern_decl();
 
-        // Expressions
+        
         ExprPtr parse_expr();
         ExprPtr parse_or_expr();
         ExprPtr parse_and_expr();
@@ -59,7 +58,7 @@ namespace slua {
         ExprPtr parse_func_expr();
         std::vector<ExprPtr> parse_arg_list();
 
-        // Types
+        
         TypeNodePtr parse_type();
         TypeNodePtr parse_union_type();
         TypeNodePtr parse_optional_type(TypeNodePtr base);

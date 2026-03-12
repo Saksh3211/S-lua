@@ -12,21 +12,12 @@
 #include <sstream>
 
 namespace slua {
-
-
-
-
-
 IREmitter::IREmitter(DiagEngine& diag, SemanticConfig cfg,const std::string& module_name)
     : diag_(diag), cfg_(cfg),
       mod_(std::make_unique<llvm::Module>(module_name, ctx_)),
       builder_(ctx_) {
     declare_runtime();
 }
-
-
-
-
 
 void IREmitter::push_env() {
     auto* e  = new VarEnv();
@@ -48,7 +39,6 @@ void IREmitter::push_defer_scope() {
 void IREmitter::pop_defer_scope() {
     if (defer_stack_.empty()) return;
     auto& scope = defer_stack_.back();
-    
     for (int i = (int)scope.size() - 1; i >= 0; i--)
         scope[i].emit_fn();
     defer_stack_.pop_back();
@@ -59,42 +49,30 @@ void IREmitter::add_defer(std::function<void()> fn) {
         defer_stack_.back().push_back({std::move(fn)});
 }
 
-
-
-
-
-llvm::AllocaInst* IREmitter::create_alloca(llvm::Type* ty,
-                                            const std::string& name) {
+llvm::AllocaInst* IREmitter::create_alloca(llvm::Type* ty,const std::string& name) {
     assert(cur_func_ && "create_alloca outside function");
     llvm::IRBuilder<> tmp(&cur_func_->getEntryBlock(),
-                           cur_func_->getEntryBlock().begin());
+        cur_func_->getEntryBlock().begin());
     return tmp.CreateAlloca(ty, nullptr, name);
 }
-
-
-
-
 
 llvm::Type* IREmitter::llvm_type_named(const std::string& name) {
     if (name == "int"   || name == "int64") return llvm::Type::getInt64Ty(ctx_);
     if (name == "int32" || name == "int16") return llvm::Type::getInt32Ty(ctx_);
-    if (name == "int8"  || name == "char" || name == "byte" ||
-        name == "uint8")                    return llvm::Type::getInt8Ty(ctx_);
-    if (name == "uint16")                   return llvm::Type::getInt16Ty(ctx_);
-    if (name == "uint32")                   return llvm::Type::getInt32Ty(ctx_);
-    if (name == "uint64")                   return llvm::Type::getInt64Ty(ctx_);
-    if (name == "number" || name == "float" ||
-        name == "double")                   return llvm::Type::getDoubleTy(ctx_);
-    if (name == "bool")                     return llvm::Type::getInt1Ty(ctx_);
-    if (name == "void")                     return llvm::Type::getVoidTy(ctx_);
-    if (name == "string")                   return llvm::PointerType::getUnqual(
-                                                llvm::Type::getInt8Ty(ctx_));
-    if (name == "any")                      return tagvalue_type();
+    if (name == "int8"  || name == "char" || name == "byte" ||name == "uint8") 
+        return llvm::Type::getInt8Ty(ctx_);
+    if (name == "uint16")return llvm::Type::getInt16Ty(ctx_);
+    if (name == "uint32") return llvm::Type::getInt32Ty(ctx_);
+    if (name == "uint64") return llvm::Type::getInt64Ty(ctx_);
+    if (name == "number" || name == "float" ||name == "double") 
+        return llvm::Type::getDoubleTy(ctx_);
+    if (name == "bool")return llvm::Type::getInt1Ty(ctx_);
+    if (name == "void")return llvm::Type::getVoidTy(ctx_);
+    if (name == "string") return llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
+    if (name == "any") return tagvalue_type();
 
-    
     auto it = struct_types_.find(name);
     if (it != struct_types_.end()) return it->second;
-
     
     return llvm::Type::getInt64Ty(ctx_);
 }
@@ -148,7 +126,6 @@ llvm::Type* IREmitter::llvm_type(const TypeNode* t) {
     }, t->v);
 }
 
-
 llvm::Type* IREmitter::tagvalue_type() {
     static llvm::StructType* tv = nullptr;
     if (!tv) {
@@ -161,42 +138,25 @@ llvm::Type* IREmitter::tagvalue_type() {
     }
     return tv;
 }
-
-
-
-
-
-
 void IREmitter::declare_runtime() {
     auto* i8p  = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
     auto* i64  = llvm::Type::getInt64Ty(ctx_);
     auto* i32  = llvm::Type::getInt32Ty(ctx_);
     auto* voidT= llvm::Type::getVoidTy(ctx_);
 
-    auto declare = [&](const std::string& name,
-                       llvm::Type* ret,
-                       std::vector<llvm::Type*> params,
-                       bool vararg = false) {
+    auto declare = [&](const std::string& name,llvm::Type* ret,std::vector<llvm::Type*> params,bool vararg = false) {
         auto* ft = llvm::FunctionType::get(ret, params, vararg);
         auto* fn = llvm::Function::Create(
             ft, llvm::Function::ExternalLinkage, name, *mod_);
         functions_[name] = fn;
     };
-
-    
     declare("slua_alloc",       i8p,   {i64});
-    
     declare("slua_free",        voidT, {i8p});
-    
     declare("slua_panic",       voidT, {i8p, i8p, i32});
-    
     declare("slua_print_str",   voidT, {i8p});
-    
     declare("slua_print_int",   voidT, {i64});
     
-    declare("slua_print_float", voidT,
-            {llvm::Type::getDoubleTy(ctx_)});
-    
+    declare("slua_print_float", voidT,{llvm::Type::getDoubleTy(ctx_)});
     declare("slua_print_bool",  voidT, {i32});
     
     declare("slua_print_null",  voidT, {});
@@ -204,7 +164,6 @@ void IREmitter::declare_runtime() {
     declare("slua_time_ns",     i64,   {});
     
     declare("slua_exit",        voidT, {i32});
-
     declare("slua_read_line",        i8p,   {});
     declare("slua_read_char",        i32,   {});
     declare("slua_io_clear",         voidT, {});
@@ -233,16 +192,9 @@ llvm::Function* IREmitter::get_runtime_fn(const std::string& name) {
     if (it != functions_.end()) return it->second;
     return nullptr;
 }
-
-
-
-
-
 bool IREmitter::emit(slua::Module& mod) {
     cur_mode_ = mod.mode;
     push_env();
-
-    
     
     for (auto& s : mod.stmts) {
         if (auto* fd = std::get_if<FuncDecl>(&s->v)) {
@@ -250,20 +202,16 @@ bool IREmitter::emit(slua::Module& mod) {
             std::vector<llvm::Type*> param_tys;
             for (auto& [pn, pt] : fd->params)
                 param_tys.push_back(llvm_type(pt.get()));
-
             llvm::Type* ret_ty = fd->ret_type
                 ? llvm_type(fd->ret_type.get())
                 : llvm::Type::getVoidTy(ctx_);
-
             auto* ft = llvm::FunctionType::get(ret_ty, param_tys, false);
             auto* fn = llvm::Function::Create(
                 ft, llvm::Function::ExternalLinkage, fd->name, *mod_);
-
             
             size_t i = 0;
             for (auto& arg : fn->args())
                 arg.setName(fd->params[i++].first);
-
             functions_[fd->name] = fn;
         }
         else if (auto* ed = std::get_if<ExternDecl>(&s->v)) {
@@ -273,8 +221,6 @@ bool IREmitter::emit(slua::Module& mod) {
             emit_type_decl(*td, s->loc);
         }
     }
-
-    
     for (auto& s : mod.stmts)
         emit_stmt(*s);
 
@@ -289,11 +235,6 @@ bool IREmitter::emit(slua::Module& mod) {
     }
     return true;
 }
-
-
-
-
-
 bool IREmitter::write_ll(const std::string& path) {
     std::error_code ec;
     llvm::raw_fd_ostream out(path, ec, llvm::sys::fs::OF_Text);
@@ -320,10 +261,6 @@ void IREmitter::dump() {
     mod_->print(llvm::errs(), nullptr);
 }
 
-
-
-
-
 void IREmitter::emit_panic(const std::string& msg, SourceLoc loc) {
     auto* fn = get_runtime_fn("slua_panic");
     if (!fn) return;
@@ -335,17 +272,11 @@ void IREmitter::emit_panic(const std::string& msg, SourceLoc loc) {
     builder_.CreateUnreachable();
 }
 
-
-
-
-
 void IREmitter::emit_stmt(Stmt& s) {
-    
     if (cur_func_) {
         auto* bb = builder_.GetInsertBlock();
         if (bb && bb->getTerminator()) return;
     }
-
     std::visit([&](auto&& v) {
         using T = std::decay_t<decltype(v)>;
         if      constexpr (std::is_same_v<T, LocalDecl>)    emit_local_decl(v, s.loc);
@@ -376,15 +307,10 @@ void IREmitter::emit_stmt(Stmt& s) {
     }, s.v);
 }
 
-
-
-
-
 void IREmitter::emit_local_decl(LocalDecl& s, SourceLoc loc) {
     llvm::Type* ty = s.type_ann
         ? llvm_type(s.type_ann.get())
         : llvm::Type::getInt64Ty(ctx_);
-
     llvm::AllocaInst* slot = create_alloca(ty, s.name);
 
     if (s.init) {
@@ -397,15 +323,10 @@ void IREmitter::emit_local_decl(LocalDecl& s, SourceLoc loc) {
         
         builder_.CreateStore(llvm::Constant::getNullValue(ty), slot);
     }
-
     env_->define(s.name, slot);
 }
-
 void IREmitter::emit_global_decl(GlobalDecl& s, SourceLoc loc) {
-    llvm::Type* ty = s.type_ann
-        ? llvm_type(s.type_ann.get())
-        : llvm::Type::getInt64Ty(ctx_);
-
+    llvm::Type* ty = s.type_ann? llvm_type(s.type_ann.get()): llvm::Type::getInt64Ty(ctx_);
     llvm::Constant* init_val = llvm::Constant::getNullValue(ty);
     auto* gv = new llvm::GlobalVariable(
         *mod_, ty, false,
@@ -420,11 +341,6 @@ void IREmitter::emit_global_decl(GlobalDecl& s, SourceLoc loc) {
 
     env_->define(s.name, gv);
 }
-
-
-
-
-
 void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
     llvm::Function* fn = functions_[s.name];
     if (!fn) return; 
@@ -442,7 +358,6 @@ void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
 
     cur_func_   = fn;
     cur_ret_bb_ = exit_bb;
-
     
     llvm::Type* ret_ty = fn->getReturnType();
     if (!ret_ty->isVoidTy()) {
@@ -454,7 +369,6 @@ void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
 
     push_env();
     push_defer_scope();
-
     
     size_t i = 0;
     for (auto& arg : fn->args()) {
@@ -468,8 +382,6 @@ void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
     
     for (auto& stmt : s.body)
         emit_stmt(*stmt);
-
-    
     if (!builder_.GetInsertBlock()->getTerminator()) {
         pop_defer_scope();
         if (!builder_.GetInsertBlock()->getTerminator())
@@ -478,12 +390,7 @@ void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
         if (!defer_stack_.empty()) defer_stack_.pop_back();
     }
     
-
-
-
-
     builder_.SetInsertPoint(exit_bb);
-
 
     if (cur_ret_slot_) {
         llvm::Value* ret = builder_.CreateLoad(ret_ty, cur_ret_slot_);
@@ -501,10 +408,6 @@ void IREmitter::emit_func_decl(FuncDecl& s, SourceLoc loc) {
     if (saved_func)
         builder_.SetInsertPoint(&saved_func->back());
 }
-
-
-
-
 
 void IREmitter::emit_if_stmt(IfStmt& s) {
     llvm::Value* cond = emit_expr(*s.cond);
@@ -527,7 +430,6 @@ void IREmitter::emit_if_stmt(IfStmt& s) {
     auto* end_bb  = llvm::BasicBlock::Create(ctx_, "if.end",  cur_func_);
 
     builder_.CreateCondBr(cond, then_bb, else_bb);
-
     
     builder_.SetInsertPoint(then_bb);
     push_env(); push_defer_scope();
@@ -542,8 +444,7 @@ void IREmitter::emit_if_stmt(IfStmt& s) {
         llvm::Value* eic = emit_expr(*ei_cond);
         if (eic && !eic->getType()->isIntegerTy(1)) {
             if (eic->getType()->isIntegerTy())
-                eic = builder_.CreateICmpNE(
-                    eic, llvm::Constant::getNullValue(eic->getType()));
+                eic = builder_.CreateICmpNE(eic, llvm::Constant::getNullValue(eic->getType()));
         }
         auto* ei_then = llvm::BasicBlock::Create(ctx_, "elif.then", cur_func_);
         auto* ei_else = llvm::BasicBlock::Create(ctx_, "elif.else", cur_func_);
@@ -556,16 +457,13 @@ void IREmitter::emit_if_stmt(IfStmt& s) {
             builder_.CreateBr(end_bb);
         builder_.SetInsertPoint(ei_else);
     }
-
     
     if (s.else_body) {
         push_env(); push_defer_scope();
         for (auto& st : *s.else_body) emit_stmt(*st);
         pop_defer_scope(); pop_env();
     }
-
         builder_.CreateBr(end_bb);
-
     builder_.SetInsertPoint(end_bb);
 }
 
@@ -588,9 +486,7 @@ void IREmitter::emit_while_stmt(WhileStmt& s) {
     push_env(); push_defer_scope();
     for (auto& st : s.body) emit_stmt(*st);
     pop_defer_scope(); pop_env();
-
         builder_.CreateBr(cond_bb);
-
     builder_.SetInsertPoint(end_bb);
 }
 
@@ -609,16 +505,13 @@ void IREmitter::emit_repeat_stmt(RepeatStmt& s) {
 
     if (!builder_.GetInsertBlock()->getTerminator()) {
         if (cond && !cond->getType()->isIntegerTy(1))
-            cond = builder_.CreateICmpNE(
-                cond, llvm::Constant::getNullValue(cond->getType()));
-        builder_.CreateCondBr(cond ? cond :
-            llvm::ConstantInt::getFalse(ctx_), end_bb, body_bb);
+            cond = builder_.CreateICmpNE(cond, llvm::Constant::getNullValue(cond->getType()));
+        builder_.CreateCondBr(cond ? cond :llvm::ConstantInt::getFalse(ctx_), end_bb, body_bb);
     }
     builder_.SetInsertPoint(end_bb);
 }
 
 void IREmitter::emit_numeric_for(NumericFor& s) {
-    
     auto* i64 = llvm::Type::getInt64Ty(ctx_);
 
     llvm::Value* start = emit_expr(*s.start);
@@ -626,20 +519,16 @@ void IREmitter::emit_numeric_for(NumericFor& s) {
     llvm::Value* step  = s.step
         ? emit_expr(*s.step)
         : llvm::ConstantInt::get(i64, 1);
-
     start = coerce(start, i64, {});
     stop  = coerce(stop,  i64, {});
     step  = coerce(step,  i64, {});
-
     auto* loop_bb = llvm::BasicBlock::Create(ctx_, "for.loop", cur_func_);
     auto* body_bb = llvm::BasicBlock::Create(ctx_, "for.body", cur_func_);
     auto* end_bb  = llvm::BasicBlock::Create(ctx_, "for.end",  cur_func_);
-
     
     llvm::AllocaInst* i_slot = create_alloca(i64, s.var);
     builder_.CreateStore(start, i_slot);
     builder_.CreateBr(loop_bb);
-
     
     builder_.SetInsertPoint(loop_bb);
     llvm::Value* i_val = builder_.CreateLoad(i64, i_slot);
@@ -647,7 +536,6 @@ void IREmitter::emit_numeric_for(NumericFor& s) {
     llvm::Value* cond = builder_.CreateICmpSLE(i_val, stop, "for.cond");
     builder_.CreateCondBr(cond, body_bb, end_bb);
 
-    
     builder_.SetInsertPoint(body_bb);
     push_env(); push_defer_scope();
     env_->define(s.var, i_slot);
@@ -661,7 +549,6 @@ void IREmitter::emit_numeric_for(NumericFor& s) {
         builder_.CreateStore(i_next, i_slot);
         builder_.CreateBr(loop_bb);
     }
-
     builder_.SetInsertPoint(end_bb);
 }
 
@@ -688,7 +575,6 @@ void IREmitter::emit_assign(Assign& s, SourceLoc loc) {
     llvm::Value* lhs = emit_lvalue(*s.target);
     if (!rhs || !lhs) return;
 
-    
     if (auto* pt = llvm::dyn_cast<llvm::AllocaInst>(lhs))
             rhs = coerce(rhs, pt->getAllocatedType(), loc);
     else if (auto* gv = llvm::dyn_cast<llvm::GlobalVariable>(lhs))
@@ -793,10 +679,6 @@ void IREmitter::emit_extern_decl(ExternDecl& s, SourceLoc loc) {
     functions_[s.name] = fn;
 }
 
-
-
-
-
 llvm::Value* IREmitter::emit_expr(Expr& e) {
     return std::visit([&](auto&& v) -> llvm::Value* {
         using T = std::decay_t<decltype(v)>;
@@ -875,7 +757,6 @@ llvm::Value* IREmitter::emit_expr(Expr& e) {
         }
 
         else if constexpr (std::is_same_v<T, FuncExpr>) {
-            
             static int anon_id = 0;
             std::string name = "__anon_" + std::to_string(anon_id++);
 
@@ -885,13 +766,10 @@ llvm::Value* IREmitter::emit_expr(Expr& e) {
             llvm::Type* ret_ty = v.ret_type
                 ? llvm_type(v.ret_type.get())
                 : llvm::Type::getVoidTy(ctx_);
-
             auto* fty = llvm::FunctionType::get(ret_ty, param_tys, false);
             auto* fn  = llvm::Function::Create(
                 fty, llvm::Function::InternalLinkage, name, *mod_);
             functions_[name] = fn;
-
-            
             auto* saved_func     = cur_func_;
             auto* saved_ret_bb   = cur_ret_bb_;
             auto* saved_ret_slot = cur_ret_slot_;
@@ -918,31 +796,21 @@ llvm::Value* IREmitter::emit_expr(Expr& e) {
             }
             for (auto& st : v.body) emit_stmt(*st);
             pop_defer_scope(); pop_env();
-
-
-
             builder_.SetInsertPoint(exit_bb);
             if (cur_ret_slot_) {
                 auto* rv = builder_.CreateLoad(ret_ty, cur_ret_slot_);
                 builder_.CreateRet(rv);
             } else builder_.CreateRetVoid();
-
             cur_func_     = saved_func;
             cur_ret_bb_   = saved_ret_bb;
             cur_ret_slot_ = saved_ret_slot;
             if (saved_func)
                 builder_.SetInsertPoint(&saved_func->back());
-
             return fn;
         }
-
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
     }, e.v);
 }
-
-
-
-
 
 llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
     
@@ -953,8 +821,7 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
         if (lhs->getType()->isIntegerTy(1))
             cond = lhs;
         else if (lhs->getType()->isIntegerTy())
-            cond = builder_.CreateICmpNE(
-                lhs, llvm::Constant::getNullValue(lhs->getType()));
+            cond = builder_.CreateICmpNE(lhs, llvm::Constant::getNullValue(lhs->getType()));
         else
             cond = builder_.CreateIsNotNull(lhs);
 
@@ -981,14 +848,10 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
         }
         return lhs;
     }
-
     llvm::Value* lhs = emit_expr(*e.lhs);
     llvm::Value* rhs = emit_expr(*e.rhs);
     if (!lhs || !rhs) return nullptr;
-
-    bool is_float = lhs->getType()->isDoubleTy() ||
-                    rhs->getType()->isDoubleTy();
-
+    bool is_float = lhs->getType()->isDoubleTy() || rhs->getType()->isDoubleTy();
     if (is_float && !lhs->getType()->isPointerTy() && !rhs->getType()->isPointerTy()) {
         if (!lhs->getType()->isDoubleTy())
             lhs = builder_.CreateSIToFP(lhs, llvm::Type::getDoubleTy(ctx_));
@@ -1003,13 +866,12 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
                 rhs = builder_.CreateSExt(rhs, i64);
         }
     }
-
     if (e.op == "+") return is_float ? builder_.CreateFAdd(lhs, rhs)
-                                      : builder_.CreateAdd(lhs, rhs);
+        : builder_.CreateAdd(lhs, rhs);
     if (e.op == "-") return is_float ? builder_.CreateFSub(lhs, rhs)
-                                      : builder_.CreateSub(lhs, rhs);
+        : builder_.CreateSub(lhs, rhs);
     if (e.op == "*") return is_float ? builder_.CreateFMul(lhs, rhs)
-                                      : builder_.CreateMul(lhs, rhs);
+        : builder_.CreateMul(lhs, rhs);
     if (e.op == "/") {
         if (!is_float) {
             lhs = builder_.CreateSIToFP(lhs, llvm::Type::getDoubleTy(ctx_));
@@ -1018,9 +880,7 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
         return builder_.CreateFDiv(lhs, rhs);
     }
     if (e.op == "%") return is_float ? builder_.CreateFRem(lhs, rhs)
-      : builder_.CreateSRem(lhs, rhs);
-
-    
+    : builder_.CreateSRem(lhs, rhs);
     if (e.op == "==" || e.op == "~=") {
         llvm::Value* cmp = is_float
             ? builder_.CreateFCmpOEQ(lhs, rhs)
@@ -1035,14 +895,11 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
             :  builder_.CreateICmpSLE(lhs, rhs);
         if (e.op == ">=") return is_float ? builder_.CreateFCmpOGE(lhs, rhs)
             : builder_.CreateICmpSGE(lhs, rhs);
-
-    
     if (e.op == "&")  return builder_.CreateAnd(lhs, rhs);
     if (e.op == "|")  return builder_.CreateOr(lhs, rhs);
     if (e.op == "~")  return builder_.CreateXor(lhs, rhs);
     if (e.op == "<<") return builder_.CreateShl(lhs, rhs);
     if (e.op == ">>") return builder_.CreateAShr(lhs, rhs);
-
 
     if (e.op == "..") {
         auto* fn = get_runtime_fn("slua_str_concat");
@@ -1070,8 +927,6 @@ llvm::Value* IREmitter::emit_binop(Binop& e, SourceLoc loc) {
     return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
 }
 
-
-
 llvm::Value* IREmitter::emit_unop(Unop& e, SourceLoc loc) {
     llvm::Value* val = emit_expr(*e.operand);
     if (!val) return nullptr;
@@ -1094,10 +949,6 @@ llvm::Value* IREmitter::emit_unop(Unop& e, SourceLoc loc) {
     }
     return val;
 }
-
-
-
-
 
 llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
     if (auto* fi = std::get_if<Field>(&e.callee->v)) {
@@ -1184,7 +1035,6 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
             }
         }
     }
-    
     if (auto* id = std::get_if<Ident>(&e.callee->v)) {
         if (id->name == "print" && !e.args.empty()) {
             llvm::Value* arg = emit_expr(*e.args[0]);
@@ -1211,14 +1061,12 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
             return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
         }
     }
-
     llvm::Value* callee = emit_expr(*e.callee);
     if (!callee) return nullptr;
 
     
     llvm::Function* fn = llvm::dyn_cast<llvm::Function>(callee);
     if (!fn) return nullptr;
-
     std::vector<llvm::Value*> args;
     auto param_tys = fn->getFunctionType()->params().vec();
     for (size_t i = 0; i < e.args.size(); i++) {
@@ -1228,27 +1076,20 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
             arg = coerce(arg, param_tys[i], loc);
         args.push_back(arg);
     }
-
     llvm::Value* result = builder_.CreateCall(fn, args);
     return result;
 }
 
 llvm::Value* IREmitter::emit_method_call(MethodCall& e, SourceLoc loc) {
-    
     emit_expr(*e.obj);
     for (auto& arg : e.args) emit_expr(*arg);
     return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
 }
 
-
-
-
-
 llvm::Value* IREmitter::emit_field(Field& e, SourceLoc loc) {
     llvm::Value* obj = emit_lvalue(*e.table);
     if (!obj) return nullptr;
 
-    
     llvm::Type* struct_ty = nullptr;
     if (auto* ai = llvm::dyn_cast<llvm::AllocaInst>(obj))
         struct_ty = ai->getAllocatedType();
@@ -1256,12 +1097,8 @@ llvm::Value* IREmitter::emit_field(Field& e, SourceLoc loc) {
         struct_ty = gv->getValueType();
 
     if (!struct_ty || !struct_ty->isStructTy()) {
-        
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
     }
-
-    
-    
     auto* gep = builder_.CreateStructGEP(struct_ty, obj, 0, e.name);
     llvm::Type* field_ty = llvm::cast<llvm::StructType>(struct_ty)
         ->getElementType(0);
@@ -1283,18 +1120,10 @@ llvm::Value* IREmitter::emit_index(Index& e, SourceLoc loc) {
     return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
 }
 
-
-
-
-
 llvm::Value* IREmitter::emit_table_ctor(TableCtor& e, SourceLoc loc) {
     
     if (e.entries.empty())
-        return llvm::ConstantPointerNull::get(
-            llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_)));
-
-    
-    
+        return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_)));
     auto* i64 = llvm::Type::getInt64Ty(ctx_);
     auto* i8p = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
 
