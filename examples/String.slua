@@ -1,0 +1,13 @@
+--!!type:strict
+function main():int64
+    local s:string = "Hello World"
+    local up:string = string.upper(s)
+    local low:string = string.lower(s)
+    local sub:string = string.sub(s, 0, 4)
+    local len:int64 = string.len(s)
+    print(up)
+    print(low)
+    print(sub)
+    print(len)
+    return 0
+end
