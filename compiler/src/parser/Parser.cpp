@@ -475,27 +475,44 @@ StmtPtr Parser::parse_repeat_stmt() {
 }
 
 StmtPtr Parser::parse_numeric_for() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string var = expect(TokenKind::TK_IDENT, "for variable").text;
     expect(TokenKind::TK_ASSIGN, "for initialiser");
-    auto start = parse_expr();
-    expect(TokenKind::TK_COMMA, "for range");
-    auto stop  = parse_expr();
+    auto init_expr = parse_expr();
+    expect(TokenKind::TK_COMMA, "for second clause");
+    auto second_expr = parse_expr();
+
+    bool is_cstyle = false;
+    if (auto* b = std::get_if<Binop>(&second_expr->v)) {
+        const std::string& op = b->op;
+        if (op == "<" || op == ">" || op == "<=" || op == ">=" || op == "==" || op == "~=")
+            is_cstyle = true;
+    }
+
+    if (is_cstyle) {
+        expect(TokenKind::TK_COMMA, "for step expression");
+        auto step_expr = parse_expr();
+        expect(TokenKind::TK_DO, "for body");
+        std::vector<StmtPtr> body;
+        while (!check(TokenKind::TK_END) && !check(TokenKind::TK_EOF))
+            if (auto st = parse_stmt()) body.push_back(std::move(st));
+        expect(TokenKind::TK_END, "for loop");
+        auto s = std::make_unique<Stmt>();
+        s->v   = CStyleFor{var, std::move(init_expr), std::move(second_expr), std::move(step_expr), std::move(body)};
+        s->loc = loc;
+        return s;
+    }
 
     ExprPtr step;
     if (match(TokenKind::TK_COMMA))
         step = parse_expr();
-
     expect(TokenKind::TK_DO, "for range");
-
     std::vector<StmtPtr> body;
     while (!check(TokenKind::TK_END) && !check(TokenKind::TK_EOF))
         if (auto st = parse_stmt()) body.push_back(std::move(st));
     expect(TokenKind::TK_END, "for loop");
-
     auto s = std::make_unique<Stmt>();
-    s->v   = NumericFor{var, std::move(start), std::move(stop),
-                        std::move(step), std::move(body)};
+    s->v   = NumericFor{var, std::move(init_expr), std::move(second_expr), std::move(step), std::move(body)};
     s->loc = loc;
     return s;
 }
@@ -1182,3 +1199,4 @@ TypeNodePtr Parser::parse_ptr_type() {
 }
 
 } 
+

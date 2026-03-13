@@ -66,6 +66,8 @@ private:
     void pop_defer_scope();  
     void add_defer(std::function<void()> fn);
 
+    std::vector<llvm::BasicBlock*> break_targets_;
+    std::vector<llvm::BasicBlock*> continue_targets_;
     llvm::Function*   cur_func_     = nullptr;
     llvm::BasicBlock* cur_ret_bb_   = nullptr;  
     llvm::AllocaInst* cur_ret_slot_ = nullptr;  
@@ -85,6 +87,7 @@ private:
     void emit_while_stmt (WhileStmt&  s);
     void emit_repeat_stmt(RepeatStmt& s);
     void emit_numeric_for(NumericFor& s);
+    void emit_cstyle_for (CStyleFor&  s);
     void emit_return_stmt(ReturnStmt& s, SourceLoc loc);
     void emit_assign     (Assign&     s, SourceLoc loc);
     void emit_call_stmt  (CallStmt&   s);
@@ -120,4 +123,6 @@ private:
 } 
 
 #endif 
+
+
 

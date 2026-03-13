@@ -47,10 +47,10 @@ struct Field     { ExprPtr table; std::string name; };
 struct Call      { ExprPtr callee; std::vector<ExprPtr> args; };
 struct MethodCall{ ExprPtr obj; std::string method; std::vector<ExprPtr> args; };
 struct TableCtor { struct Entry { std::optional<ExprPtr> key; ExprPtr val; };
-                   std::vector<Entry> entries; };
+                std::vector<Entry> entries; };
 struct FuncExpr  { std::vector<std::pair<std::string, TypeNodePtr>> params;
-                   TypeNodePtr ret_type;
-                   std::vector<std::unique_ptr<struct Stmt>> body; };
+                TypeNodePtr ret_type;
+                std::vector<std::unique_ptr<struct Stmt>> body; };
 struct AllocExpr { TypeNodePtr elem_type; ExprPtr count; };
 struct DerefExpr { ExprPtr ptr; };
 struct AddrExpr  { ExprPtr target; };
@@ -85,6 +85,7 @@ struct IfStmt     { ExprPtr cond; std::vector<StmtPtr> then_body;
 struct WhileStmt  { ExprPtr cond; std::vector<StmtPtr> body; };
 struct RepeatStmt { std::vector<StmtPtr> body; ExprPtr until_cond; };
 struct NumericFor { std::string var; ExprPtr start, stop, step; std::vector<StmtPtr> body; };
+struct CStyleFor  { std::string var; ExprPtr init, cond, step;  std::vector<StmtPtr> body; };
 struct ReturnStmt { std::vector<ExprPtr> values; };
 struct BreakStmt  {};
 struct ContinueStmt{};
@@ -107,7 +108,7 @@ struct Stmt {
     using Variant = std::variant<
         LocalDecl, GlobalDecl, Assign, CallStmt, DoBlock,
         IfStmt, WhileStmt, RepeatStmt, NumericFor,
-        ReturnStmt, BreakStmt, ContinueStmt, DeferStmt,
+        ReturnStmt, BreakStmt, ContinueStmt, DeferStmt, CStyleFor,
         FuncDecl, ExternDecl, ImportDecl, PanicStmt,
         StoreStmt, FreeStmt, TypeDecl>;
     Variant v;
@@ -123,4 +124,6 @@ struct Module {
 };
 
 } 
+
+
 

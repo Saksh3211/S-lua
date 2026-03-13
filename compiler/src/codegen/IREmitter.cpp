@@ -321,6 +321,8 @@ void IREmitter::emit_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, WhileStmt>)    emit_while_stmt(v);
         else if constexpr (std::is_same_v<T, RepeatStmt>)   emit_repeat_stmt(v);
         else if constexpr (std::is_same_v<T, NumericFor>)   emit_numeric_for(v);
+        else if constexpr (std::is_same_v<T, CStyleFor>)    emit_cstyle_for(v);
+
         else if constexpr (std::is_same_v<T, ReturnStmt>)   emit_return_stmt(v, s.loc);
         else if constexpr (std::is_same_v<T, Assign>)       emit_assign(v, s.loc);
         else if constexpr (std::is_same_v<T, CallStmt>)     emit_call_stmt(v);
@@ -331,8 +333,20 @@ void IREmitter::emit_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, PanicStmt>)    emit_panic_stmt(v);
         else if constexpr (std::is_same_v<T, TypeDecl>)     emit_type_decl(v, s.loc);
         else if constexpr (std::is_same_v<T, ExternDecl>)   emit_extern_decl(v, s.loc);
-        else if constexpr (std::is_same_v<T, BreakStmt>)    {  }
-        else if constexpr (std::is_same_v<T, ContinueStmt>) {  }
+        else if constexpr (std::is_same_v<T, BreakStmt>) {
+            if (!break_targets_.empty()) {
+                builder_.CreateBr(break_targets_.back());
+                auto* dead = llvm::BasicBlock::Create(ctx_, "break.dead", cur_func_);
+                builder_.SetInsertPoint(dead);
+            }
+        }
+        else if constexpr (std::is_same_v<T, ContinueStmt>) {
+            if (!continue_targets_.empty()) {
+                builder_.CreateBr(continue_targets_.back());
+                auto* dead = llvm::BasicBlock::Create(ctx_, "cont.dead", cur_func_);
+                builder_.SetInsertPoint(dead);
+            }
+        }
         else if constexpr (std::is_same_v<T, ImportDecl>)   {  }
     }, s.v);
 }
@@ -601,6 +615,51 @@ void IREmitter::emit_numeric_for(NumericFor& s) {
         builder_.CreateStore(i_next, i_slot);
         builder_.CreateBr(loop_bb);
     }
+
+    builder_.SetInsertPoint(end_bb);
+}
+
+void IREmitter::emit_cstyle_for(CStyleFor& s) {
+    auto* i64 = llvm::Type::getInt64Ty(ctx_);
+
+    push_env();
+    llvm::AllocaInst* slot = create_alloca(i64, s.var);
+    llvm::Value* init_val = emit_expr(*s.init);
+    init_val = coerce(init_val, i64, {});
+    builder_.CreateStore(init_val, slot);
+    env_->define(s.var, slot);
+
+    auto* cond_bb = llvm::BasicBlock::Create(ctx_, "cfor.cond", cur_func_);
+    auto* body_bb = llvm::BasicBlock::Create(ctx_, "cfor.body", cur_func_);
+    auto* step_bb = llvm::BasicBlock::Create(ctx_, "cfor.step", cur_func_);
+    auto* end_bb  = llvm::BasicBlock::Create(ctx_, "cfor.end",  cur_func_);
+
+    break_targets_.push_back(end_bb);
+    continue_targets_.push_back(step_bb);
+
+    builder_.CreateBr(cond_bb);
+    builder_.SetInsertPoint(cond_bb);
+    llvm::Value* cond_val = emit_expr(*s.cond);
+    if (cond_val->getType() != llvm::Type::getInt1Ty(ctx_))
+        cond_val = builder_.CreateICmpNE(cond_val, llvm::ConstantInt::get(cond_val->getType(), 0), "cfor.cond");
+    builder_.CreateCondBr(cond_val, body_bb, end_bb);
+
+    builder_.SetInsertPoint(body_bb);
+    push_defer_scope();
+    for (auto& st : s.body) emit_stmt(*st);
+    pop_defer_scope();
+    if (!builder_.GetInsertBlock()->getTerminator())
+        builder_.CreateBr(step_bb);
+
+    builder_.SetInsertPoint(step_bb);
+    llvm::Value* step_val = emit_expr(*s.step);
+    step_val = coerce(step_val, i64, {});
+    builder_.CreateStore(step_val, slot);
+    builder_.CreateBr(cond_bb);
+
+    break_targets_.pop_back();
+    continue_targets_.pop_back();
+    pop_env();
 
     builder_.SetInsertPoint(end_bb);
 }
@@ -1409,6 +1468,9 @@ llvm::Value* IREmitter::coerce(llvm::Value* v, llvm::Type* to,
 }
 
 #endif
+
+
+
 
 
 
