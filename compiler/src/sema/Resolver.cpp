@@ -364,7 +364,7 @@ void Resolver::resolve_ident(Ident& e, Expr& node) {
         
         static const std::vector<std::string> builtins = {
             "print", "read_line", "tostring", "tonumber",
-            "math", "os", "io", "table", "string",
+            "math", "os", "io", "table", "string", "stdata",
             "assert", "error", "pcall", "xpcall",
             "ipairs", "pairs", "next", "select", "type",
             "rawget", "rawset", "rawequal", "rawlen",

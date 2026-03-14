@@ -28,7 +28,6 @@ Token Parser::expect(TokenKind k, const std::string& ctx) {
             "expected '" + token_kind_name(k) + "' in " + ctx +
             ", got '" + cur_.text + "'",
             cur_.loc);
-        
         return cur_;
     }
     return advance();
@@ -58,6 +57,7 @@ std::string Parser::token_kind_name(TokenKind k) {
         default: return "token";
     }
 }
+
 std::unique_ptr<Module> Parser::parse_module(const std::string& filename) {
     auto mod      = std::make_unique<Module>();
     mod->filename = filename;
@@ -65,10 +65,8 @@ std::unique_ptr<Module> Parser::parse_module(const std::string& filename) {
 
     while (!check(TokenKind::TK_EOF)) {
         auto stmt = parse_stmt();
-        if (stmt) {
+        if (stmt)
             mod->stmts.push_back(std::move(stmt));
-        }
-        
     }
     return mod;
 }
@@ -78,26 +76,20 @@ StmtPtr Parser::parse_stmt() {
 
     switch (cur_.kind) {
 
-        
         case TokenKind::TK_LOCAL:
             return parse_local_decl();
 
-        
         case TokenKind::TK_CONST:
             return parse_const_decl();
 
-        
         case TokenKind::TK_GLOBAL:
             return parse_global_decl();
 
-        
         case TokenKind::TK_FUNCTION:
             return parse_func_decl(false);
 
-        
-        
         case TokenKind::TK_EXPORT: {
-            advance(); 
+            advance();
             if (check(TokenKind::TK_FUNCTION))
                 return parse_func_decl(true);
             if (check(TokenKind::TK_TYPE))
@@ -107,27 +99,21 @@ StmtPtr Parser::parse_stmt() {
             return nullptr;
         }
 
-        
         case TokenKind::TK_IF:
             return parse_if_stmt();
 
-        
         case TokenKind::TK_WHILE:
             return parse_while_stmt();
 
-        
         case TokenKind::TK_REPEAT:
             return parse_repeat_stmt();
 
-        
         case TokenKind::TK_FOR:
             return parse_numeric_for();
 
-        
         case TokenKind::TK_RETURN:
             return parse_return_stmt();
 
-        
         case TokenKind::TK_BREAK: {
             auto s = std::make_unique<Stmt>();
             s->v   = BreakStmt{};
@@ -135,7 +121,6 @@ StmtPtr Parser::parse_stmt() {
             return s;
         }
 
-        
         case TokenKind::TK_CONTINUE: {
             auto s = std::make_unique<Stmt>();
             s->v   = ContinueStmt{};
@@ -143,23 +128,18 @@ StmtPtr Parser::parse_stmt() {
             return s;
         }
 
-        
         case TokenKind::TK_DEFER:
             return parse_defer_stmt();
 
-        
         case TokenKind::TK_IMPORT:
             return parse_import_decl();
 
-        
         case TokenKind::TK_TYPE:
             return parse_type_decl();
 
-        
         case TokenKind::TK_EXTERN:
             return parse_extern_decl();
 
-        
         case TokenKind::TK_PANIC: {
             advance();
             expect(TokenKind::TK_LPAREN, "panic");
@@ -171,7 +151,6 @@ StmtPtr Parser::parse_stmt() {
             return s;
         }
 
-        
         case TokenKind::TK_STORE: {
             advance();
             expect(TokenKind::TK_LPAREN, "store");
@@ -185,7 +164,6 @@ StmtPtr Parser::parse_stmt() {
             return s;
         }
 
-        
         case TokenKind::TK_FREE: {
             advance();
             expect(TokenKind::TK_LPAREN, "free");
@@ -197,7 +175,6 @@ StmtPtr Parser::parse_stmt() {
             return s;
         }
 
-        
         case TokenKind::TK_DO: {
             advance();
             std::vector<StmtPtr> body;
@@ -210,19 +187,10 @@ StmtPtr Parser::parse_stmt() {
             return s;
         }
 
-        
-        
-        
-        
-        
-        
         default: {
-            if (check(TokenKind::TK_IDENT) ||
-                check(TokenKind::TK_LPAREN)) {
+            if (check(TokenKind::TK_IDENT) || check(TokenKind::TK_LPAREN))
                 return parse_assign_or_call();
-            }
 
-            
             diag_.error("E0001",
                 "unexpected token '" + cur_.text + "' at statement level",
                 cur_.loc);
@@ -231,12 +199,6 @@ StmtPtr Parser::parse_stmt() {
         }
     }
 }
-
-
-
-
-
-
 
 StmtPtr Parser::parse_assign_or_call() {
     SourceLoc loc = cur_.loc;
@@ -251,19 +213,14 @@ StmtPtr Parser::parse_assign_or_call() {
         return s;
     }
 
-    
     auto s = std::make_unique<Stmt>();
     s->v   = CallStmt{std::move(lhs)};
     s->loc = loc;
     return s;
 }
 
-
-
-
-
 StmtPtr Parser::parse_local_decl() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string name = expect(TokenKind::TK_IDENT, "local declaration").text;
 
     TypeNodePtr type_ann;
@@ -274,7 +231,6 @@ StmtPtr Parser::parse_local_decl() {
     if (match(TokenKind::TK_ASSIGN))
         init = parse_expr();
 
-    
     if (mode_ == CompileMode::STRICT && !type_ann && !init) {
         diag_.warn("W0020",
             "local '" + name + "' has no type annotation and no initialiser",
@@ -288,7 +244,7 @@ StmtPtr Parser::parse_local_decl() {
 }
 
 StmtPtr Parser::parse_const_decl() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string name = expect(TokenKind::TK_IDENT, "const declaration").text;
 
     TypeNodePtr type_ann;
@@ -305,7 +261,7 @@ StmtPtr Parser::parse_const_decl() {
 }
 
 StmtPtr Parser::parse_global_decl() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string name = expect(TokenKind::TK_IDENT, "global declaration").text;
 
     TypeNodePtr type_ann;
@@ -322,26 +278,18 @@ StmtPtr Parser::parse_global_decl() {
     return s;
 }
 
-
-
-
-
-
 StmtPtr Parser::parse_func_decl(bool exported) {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string name = expect(TokenKind::TK_IDENT, "function name").text;
 
-    
     std::vector<std::string> type_params;
     if (match(TokenKind::TK_LT)) {
         do {
-            type_params.push_back(
-                expect(TokenKind::TK_IDENT, "type parameter").text);
+            type_params.push_back(expect(TokenKind::TK_IDENT, "type parameter").text);
         } while (match(TokenKind::TK_COMMA));
         expect(TokenKind::TK_GT, "type parameter list");
     }
 
-    
     expect(TokenKind::TK_LPAREN, "function parameters");
     std::vector<std::pair<std::string, TypeNodePtr>> params;
     if (!check(TokenKind::TK_RPAREN)) {
@@ -355,12 +303,10 @@ StmtPtr Parser::parse_func_decl(bool exported) {
     }
     expect(TokenKind::TK_RPAREN, "function parameters");
 
-    
     TypeNodePtr ret_type;
     if (match(TokenKind::TK_COLON))
         ret_type = parse_type();
 
-    
     std::vector<StmtPtr> body;
     while (!check(TokenKind::TK_END) && !check(TokenKind::TK_EOF))
         if (auto st = parse_stmt()) body.push_back(std::move(st));
@@ -373,12 +319,8 @@ StmtPtr Parser::parse_func_decl(bool exported) {
     return s;
 }
 
-
-
-
-
 StmtPtr Parser::parse_if_stmt() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     auto cond = parse_expr();
     expect(TokenKind::TK_THEN, "if condition");
 
@@ -390,7 +332,6 @@ StmtPtr Parser::parse_if_stmt() {
         if (auto st = parse_stmt()) then_body.push_back(std::move(st));
     }
 
-    
     std::vector<std::pair<ExprPtr, std::vector<StmtPtr>>> elseif_clauses;
     while (check(TokenKind::TK_ELSEIF)) {
         advance();
@@ -406,7 +347,6 @@ StmtPtr Parser::parse_if_stmt() {
         elseif_clauses.push_back({std::move(ei_cond), std::move(ei_body)});
     }
 
-    
     std::optional<std::vector<StmtPtr>> else_body;
     if (match(TokenKind::TK_ELSE)) {
         std::vector<StmtPtr> eb;
@@ -425,7 +365,7 @@ StmtPtr Parser::parse_if_stmt() {
 }
 
 StmtPtr Parser::parse_while_stmt() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     auto cond = parse_expr();
     expect(TokenKind::TK_DO, "while condition");
 
@@ -441,7 +381,7 @@ StmtPtr Parser::parse_while_stmt() {
 }
 
 StmtPtr Parser::parse_repeat_stmt() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
 
     std::vector<StmtPtr> body;
     while (!check(TokenKind::TK_UNTIL) && !check(TokenKind::TK_EOF))
@@ -499,10 +439,9 @@ StmtPtr Parser::parse_numeric_for() {
 }
 
 StmtPtr Parser::parse_return_stmt() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
 
     std::vector<ExprPtr> values;
-    
     if (!check(TokenKind::TK_END)    &&
         !check(TokenKind::TK_ELSE)   &&
         !check(TokenKind::TK_ELSEIF) &&
@@ -520,7 +459,7 @@ StmtPtr Parser::parse_return_stmt() {
 }
 
 StmtPtr Parser::parse_defer_stmt() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     auto action   = parse_stmt();
 
     auto s = std::make_unique<Stmt>();
@@ -530,7 +469,7 @@ StmtPtr Parser::parse_defer_stmt() {
 }
 
 StmtPtr Parser::parse_import_decl() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string mod = expect(TokenKind::TK_IDENT, "import module name").text;
 
     auto s = std::make_unique<Stmt>();
@@ -540,15 +479,13 @@ StmtPtr Parser::parse_import_decl() {
 }
 
 StmtPtr Parser::parse_type_decl() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::string name = expect(TokenKind::TK_IDENT, "type name").text;
 
-    
     std::vector<std::string> type_params;
     if (match(TokenKind::TK_LT)) {
         do {
-            type_params.push_back(
-                expect(TokenKind::TK_IDENT, "type parameter").text);
+            type_params.push_back(expect(TokenKind::TK_IDENT, "type parameter").text);
         } while (match(TokenKind::TK_COMMA));
         expect(TokenKind::TK_GT, "type parameter list");
     }
@@ -563,19 +500,17 @@ StmtPtr Parser::parse_type_decl() {
 }
 
 StmtPtr Parser::parse_extern_decl() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     expect(TokenKind::TK_FUNCTION, "extern declaration");
     std::string name = expect(TokenKind::TK_IDENT, "extern function name").text;
 
-    
     expect(TokenKind::TK_LPAREN, "extern params");
     std::vector<TypeNodePtr> param_types;
     if (!check(TokenKind::TK_RPAREN)) {
         do {
-            
             if (check(TokenKind::TK_IDENT) && peek_.kind == TokenKind::TK_COLON) {
-                advance(); 
-                advance(); 
+                advance();
+                advance();
             }
             param_types.push_back(parse_type());
         } while (match(TokenKind::TK_COMMA));
@@ -586,29 +521,14 @@ StmtPtr Parser::parse_extern_decl() {
     if (match(TokenKind::TK_COLON))
         ret_type = parse_type();
 
-    auto ft  = std::make_unique<TypeNode>();
-    ft->v    = FuncType{std::move(param_types), std::move(ret_type)};
+    auto ft = std::make_unique<TypeNode>();
+    ft->v   = FuncType{std::move(param_types), std::move(ret_type)};
 
     auto s = std::make_unique<Stmt>();
     s->v   = ExternDecl{name, std::move(ft)};
     s->loc = loc;
     return s;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ExprPtr Parser::parse_expr()       { return parse_or_expr(); }
 
@@ -661,7 +581,6 @@ ExprPtr Parser::parse_concat_expr() {
     if (check(TokenKind::TK_DOTDOT)) {
         SourceLoc loc = cur_.loc;
         std::string op = advance().text;
-        
         auto rhs = parse_concat_expr();
         auto e = std::make_unique<Expr>();
         e->v   = Binop{op, std::move(lhs), std::move(rhs)};
@@ -713,7 +632,7 @@ ExprPtr Parser::parse_unary_expr() {
         return e;
     }
     if (check(TokenKind::TK_MINUS)) {
-        std::string op = advance().text;
+        advance();
         auto operand = parse_unary_expr();
         auto e = std::make_unique<Expr>();
         e->v   = Unop{"-", std::move(operand)};
@@ -721,7 +640,7 @@ ExprPtr Parser::parse_unary_expr() {
         return e;
     }
     if (check(TokenKind::TK_HASH)) {
-        std::string op = advance().text;
+        advance();
         auto operand = parse_unary_expr();
         auto e = std::make_unique<Expr>();
         e->v   = Unop{"#", std::move(operand)};
@@ -732,10 +651,6 @@ ExprPtr Parser::parse_unary_expr() {
     return parse_postfix_expr();
 }
 
-
-
-
-
 ExprPtr Parser::parse_postfix_expr() {
     auto base = parse_primary_expr();
     if (!base) return nullptr;
@@ -743,8 +658,8 @@ ExprPtr Parser::parse_postfix_expr() {
     while (true) {
         SourceLoc loc = cur_.loc;
 
-        
         if (check(TokenKind::TK_DOT)) {
+            advance();
             std::string field = advance().text;
             auto e = std::make_unique<Expr>();
             e->v   = Field{std::move(base), field};
@@ -753,7 +668,6 @@ ExprPtr Parser::parse_postfix_expr() {
             continue;
         }
 
-        
         if (check(TokenKind::TK_LBRACKET)) {
             advance();
             auto key = parse_expr();
@@ -765,7 +679,6 @@ ExprPtr Parser::parse_postfix_expr() {
             continue;
         }
 
-        
         if (check(TokenKind::TK_COLON)) {
             advance();
             std::string method = expect(TokenKind::TK_IDENT, "method name").text;
@@ -779,7 +692,6 @@ ExprPtr Parser::parse_postfix_expr() {
             continue;
         }
 
-        
         if (check(TokenKind::TK_LPAREN)) {
             advance();
             auto args = parse_arg_list();
@@ -806,10 +718,6 @@ std::vector<ExprPtr> Parser::parse_arg_list() {
     return args;
 }
 
-
-
-
-
 ExprPtr Parser::parse_primary_expr() {
     SourceLoc loc = cur_.loc;
     auto e = std::make_unique<Expr>();
@@ -817,7 +725,6 @@ ExprPtr Parser::parse_primary_expr() {
 
     switch (cur_.kind) {
 
-        
         case TokenKind::TK_NULL:
             e->v = NullLit{};
             advance();
@@ -848,13 +755,11 @@ ExprPtr Parser::parse_primary_expr() {
             advance();
             return e;
 
-        
         case TokenKind::TK_IDENT:
             e->v = Ident{cur_.text};
             advance();
             return e;
 
-        
         case TokenKind::TK_LPAREN: {
             advance();
             auto inner = parse_expr();
@@ -862,24 +767,20 @@ ExprPtr Parser::parse_primary_expr() {
             return inner;
         }
 
-        
         case TokenKind::TK_LBRACE:
             return parse_table_ctor();
 
-        
         case TokenKind::TK_FUNCTION:
             return parse_func_expr();
 
-        
         case TokenKind::TK_ALLOC: {
             advance();
             expect(TokenKind::TK_LPAREN, "alloc");
             auto count = parse_expr();
             expect(TokenKind::TK_RPAREN, "alloc");
-            
             auto vt = std::make_unique<TypeNode>();
-            vt->v  = PrimitiveType{"void"};
-            e->v   = AllocExpr{std::move(vt), std::move(count)};
+            vt->v   = PrimitiveType{"void"};
+            e->v    = AllocExpr{std::move(vt), std::move(count)};
             return e;
         }
 
@@ -905,7 +806,6 @@ ExprPtr Parser::parse_primary_expr() {
             return e;
         }
 
-        
         case TokenKind::TK_DEREF: {
             advance();
             expect(TokenKind::TK_LPAREN, "deref");
@@ -915,7 +815,6 @@ ExprPtr Parser::parse_primary_expr() {
             return e;
         }
 
-        
         case TokenKind::TK_ADDR: {
             advance();
             expect(TokenKind::TK_LPAREN, "addr");
@@ -925,7 +824,6 @@ ExprPtr Parser::parse_primary_expr() {
             return e;
         }
 
-        
         case TokenKind::TK_CAST: {
             advance();
             expect(TokenKind::TK_LPAREN, "cast");
@@ -937,7 +835,6 @@ ExprPtr Parser::parse_primary_expr() {
             return e;
         }
 
-        
         case TokenKind::TK_PTR_CAST: {
             advance();
             expect(TokenKind::TK_LPAREN, "ptr_cast");
@@ -949,7 +846,6 @@ ExprPtr Parser::parse_primary_expr() {
             return e;
         }
 
-        
         case TokenKind::TK_TYPEOF: {
             advance();
             expect(TokenKind::TK_LPAREN, "typeof");
@@ -959,7 +855,6 @@ ExprPtr Parser::parse_primary_expr() {
             return e;
         }
 
-        
         case TokenKind::TK_SIZEOF: {
             advance();
             expect(TokenKind::TK_LPAREN, "sizeof");
@@ -978,41 +873,33 @@ ExprPtr Parser::parse_primary_expr() {
     }
 }
 
-
-
-
-
-
 ExprPtr Parser::parse_table_ctor() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
     std::vector<TableCtor::Entry> entries;
 
     while (!check(TokenKind::TK_RBRACE) && !check(TokenKind::TK_EOF)) {
 
         TableCtor::Entry entry;
 
-        
         if (check(TokenKind::TK_LBRACKET)) {
             advance();
             auto key = parse_expr();
             expect(TokenKind::TK_RBRACKET, "table key");
             expect(TokenKind::TK_ASSIGN,   "table entry");
-            auto val    = parse_expr();
-            entry.key   = std::move(key);
-            entry.val   = std::move(val);
+            auto val  = parse_expr();
+            entry.key = std::move(key);
+            entry.val = std::move(val);
         }
-        
         else if (check(TokenKind::TK_IDENT) && peek_.kind == TokenKind::TK_ASSIGN) {
-            std::string field = advance().text; 
-            advance();                          
+            std::string field = advance().text;
+            advance();
             auto key = std::make_unique<Expr>();
             key->v   = StrLit{field};
             key->loc = loc;
-            auto val    = parse_expr();
-            entry.key   = std::move(key);
-            entry.val   = std::move(val);
+            auto val  = parse_expr();
+            entry.key = std::move(key);
+            entry.val = std::move(val);
         }
-        
         else {
             entry.val = parse_expr();
         }
@@ -1030,13 +917,8 @@ ExprPtr Parser::parse_table_ctor() {
     return e;
 }
 
-
-
-
-
-
 ExprPtr Parser::parse_func_expr() {
-    SourceLoc loc = advance().loc; 
+    SourceLoc loc = advance().loc;
 
     expect(TokenKind::TK_LPAREN, "function expression params");
     std::vector<std::pair<std::string, TypeNodePtr>> params;
@@ -1065,10 +947,6 @@ ExprPtr Parser::parse_func_expr() {
     e->loc = loc;
     return e;
 }
-
-
-
-
 
 TypeNodePtr Parser::parse_type() {
     return parse_union_type();
@@ -1101,15 +979,12 @@ TypeNodePtr Parser::parse_optional_type(TypeNodePtr base) {
 TypeNodePtr Parser::parse_primary_type() {
     SourceLoc loc = cur_.loc;
 
-    
     if (check(TokenKind::TK_LBRACE))
         return parse_record_type();
 
-    
     if (check(TokenKind::TK_LPAREN))
         return parse_func_type();
 
-    
     if (check(TokenKind::TK_IDENT)) {
         std::string name = advance().text;
         auto t  = std::make_unique<TypeNode>();
@@ -1134,7 +1009,7 @@ TypeNodePtr Parser::parse_primary_type() {
 }
 
 TypeNodePtr Parser::parse_record_type() {
-    advance(); 
+    advance();
     std::vector<std::pair<std::string, TypeNodePtr>> fields;
 
     while (!check(TokenKind::TK_RBRACE) && !check(TokenKind::TK_EOF)) {
@@ -1152,13 +1027,12 @@ TypeNodePtr Parser::parse_record_type() {
 }
 
 TypeNodePtr Parser::parse_func_type() {
-    advance(); 
+    advance();
     std::vector<TypeNodePtr> params;
     if (!check(TokenKind::TK_RPAREN)) {
         do {
-            
             if (check(TokenKind::TK_IDENT) && peek_.kind == TokenKind::TK_COLON) {
-                advance(); advance(); 
+                advance(); advance();
             }
             params.push_back(parse_type());
         } while (match(TokenKind::TK_COMMA));
@@ -1173,10 +1047,7 @@ TypeNodePtr Parser::parse_func_type() {
 }
 
 TypeNodePtr Parser::parse_ptr_type() {
-    
-    
     return parse_primary_type();
 }
 
-} 
-
+}
