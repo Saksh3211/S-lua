@@ -257,6 +257,9 @@ void IREmitter::declare_runtime() {
     declare("slua_ui_text_input",        i32,   {i32, i32, i32, i32, i8p, i32, i32});
     declare("slua_ui_set_font_size",     voidT, {i32});
     declare("slua_ui_set_accent",        voidT, {i32, i32, i32});
+    declare("slua_font_load",            i32,   {i8p, i32});
+    declare("slua_font_unload",          voidT, {i32});
+    declare("slua_draw_text_font",       voidT, {i32, i8p, i32, i32, i32, f32, i32, i32, i32, i32});
 }
 
 llvm::Function* IREmitter::get_runtime_fn(const std::string& name) {

@@ -276,7 +276,16 @@ namespace slua {
             else if constexpr (std::is_same_v<T, ExternDecl>)  check_extern_decl(v, s.loc);
             else if constexpr (std::is_same_v<T, BreakStmt>)   {}
             else if constexpr (std::is_same_v<T, ContinueStmt>){}
-            else if constexpr (std::is_same_v<T, ImportDecl>)  {}
+            else if constexpr (std::is_same_v<T, ImportDecl>) {
+                if (v.module_name == "stdgui") {
+                    stdgui_imported_ = true;
+                    env_->define("window", make_any());
+                    env_->define("draw",   make_any());
+                    env_->define("input",  make_any());
+                    env_->define("ui",     make_any());
+                    env_->define("font",   make_any());
+                }
+            }
         else if constexpr (std::is_same_v<T, FileImportDecl>) {}
         }, s.v);
     }

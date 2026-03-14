@@ -1,0 +1,17 @@
+--!!type:strict
+--!!mem:man
+import stdgui
+
+function main(): int
+    window.init(800, 600, "Fonts", 60)
+    local fid: int = font.load("C:/Windows/Fonts/arial.ttf", 48)
+    while window.should_close() == 0 do
+        window.begin_drawing()
+        window.clear(20, 20, 30, 255)
+        draw.text_font(fid, "Hello", 100, 100, 36, 1.0, 255, 220, 100, 255)
+        window.end_drawing()
+    end
+    font.unload(fid)
+    window.close()
+    return 0
+end

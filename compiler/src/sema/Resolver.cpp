@@ -92,7 +92,9 @@ void Resolver::resolve_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, CallStmt>)    resolve_call_stmt(v);
         else if constexpr (std::is_same_v<T, BreakStmt>)   {  }
         else if constexpr (std::is_same_v<T, ContinueStmt>){  }
-        else if constexpr (std::is_same_v<T, ImportDecl>)  {  }
+        else if constexpr (std::is_same_v<T, ImportDecl>) {
+            if (v.module_name == "stdgui") stdgui_imported_ = true;
+        }
         else if constexpr (std::is_same_v<T, FileImportDecl>) {}
     }, s.v);
 }
@@ -365,7 +367,6 @@ void Resolver::resolve_ident(Ident& e, Expr& node) {
         static const std::vector<std::string> builtins = {
             "print", "read_line", "tostring", "tonumber",
             "math", "os", "io", "table", "string", "stdata",            
-            "window", "draw", "input", "ui",
             "assert", "error", "pcall", "xpcall",
             "ipairs", "pairs", "next", "select", "type",
             "rawget", "rawset", "rawequal", "rawlen",
@@ -375,6 +376,13 @@ void Resolver::resolve_ident(Ident& e, Expr& node) {
         bool is_builtin = false;
         for (auto& b : builtins)
             if (b == e.name) { is_builtin = true; break; }
+
+        if (!is_builtin && stdgui_imported_) {
+            if (e.name == "window" || e.name == "draw" ||
+                e.name == "input"  || e.name == "ui"   ||
+                e.name == "font")
+                is_builtin = true;
+        }
 
         if (!is_builtin) {
             if (cfg_.mode == CompileMode::STRICT) {

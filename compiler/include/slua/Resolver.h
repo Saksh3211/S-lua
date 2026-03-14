@@ -68,6 +68,7 @@ private:
 
     
     TypeNode* current_ret_type_ = nullptr;
+    bool       stdgui_imported_ = false;
 
     
     void push_scope();

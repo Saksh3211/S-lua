@@ -216,4 +216,50 @@ int32_t slua_ui_text_input(int32_t x, int32_t y, int32_t w, int32_t h,
     return active;
 }
 
+
+#define SLUA_MAX_FONTS 32
+static Font slua_font_reg[SLUA_MAX_FONTS];
+static int  slua_font_used[SLUA_MAX_FONTS];
+static int  slua_font_inited = 0;
+
+static void slua_font_reg_init(void) {
+    if (!slua_font_inited) {
+        int i; for (i = 0; i < SLUA_MAX_FONTS; i++) slua_font_used[i] = 0;
+        slua_font_inited = 1;
+    }
+}
+
+int32_t slua_font_load(const char* path, int32_t size) {
+    int i;
+    slua_font_reg_init();
+    for (i = 0; i < SLUA_MAX_FONTS; i++) {
+        if (!slua_font_used[i]) {
+            slua_font_reg[i] = LoadFontEx(path, size, NULL, 0);
+            if (slua_font_reg[i].texture.id == 0) return -1;
+            slua_font_used[i] = 1;
+            return (int32_t)i;
+        }
+    }
+    return -1;
+}
+
+void slua_font_unload(int32_t id) {
+    if (id < 0 || id >= SLUA_MAX_FONTS || !slua_font_used[id]) return;
+    UnloadFont(slua_font_reg[id]);
+    slua_font_used[id] = 0;
+}
+
+void slua_draw_text_font(int32_t font_id, const char* text,
+                          int32_t x, int32_t y, int32_t size, float spacing,
+                          int32_t r, int32_t g, int32_t b, int32_t a) {
+    Color col = slua_mk_color(r, g, b, a);
+    const char* t = text ? text : "";
+    if (font_id < 0 || font_id >= SLUA_MAX_FONTS || !slua_font_used[font_id]) {
+        DrawText(t, x, y, size, col);
+        return;
+    }
+    DrawTextEx(slua_font_reg[font_id], t,
+               (Vector2){(float)x, (float)y},
+               (float)size, spacing, col);
+}
 #endif

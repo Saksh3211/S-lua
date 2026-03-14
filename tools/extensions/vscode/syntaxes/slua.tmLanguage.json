@@ -1,0 +1,31 @@
+{
+"scopeName": "source.slua",
+"patterns": [
+
+{
+"name": "keyword.control.slua",
+"match": "\\b(function|return|if|then|else|for|while|do|end)\\b"
+},
+
+{
+"name": "keyword.declaration.slua",
+"match": "\\b(local|const|import)\\b"
+},
+
+{
+"name": "storage.type.slua",
+"match": "\\b(int|float|number|string|bool|ptr)\\b"
+},
+
+{
+"name": "constant.numeric.slua",
+"match": "\\b[0-9]+\\b"
+},
+
+{
+"name": "comment.line.slua",
+"match": "--.*$"
+}
+
+]
+}

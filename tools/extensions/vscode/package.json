@@ -1,0 +1,28 @@
+{
+"name": "slua",
+"displayName": "S Lua Language Support",
+"version": "0.0.1",
+"engines": {
+"vscode": "^1.70.0"
+},
+"activationEvents": [
+"onLanguage:slua"
+],
+"main": "./extension.js",
+"contributes": {
+"languages": [
+{
+"id": "slua",
+"aliases": ["S Lua"],
+"extensions": [".slua"]
+}
+],
+"grammars": [
+{
+"language": "slua",
+"scopeName": "source.slua",
+"path": "./syntaxes/slua.tmLanguage.json"
+}
+]
+}
+}

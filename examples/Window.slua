@@ -1,5 +1,6 @@
 --!!type:strict
 --!!mem:man
+import stdgui
 
 function main(): int
     window.init(900, 600, "S Lua Window", 60)
