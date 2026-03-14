@@ -9,7 +9,8 @@ cmake -S . -B build ^
   -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake ^
   -DVCPKG_TARGET_TRIPLET=x64-windows ^
   -DLLVM_DIR=C:/vcpkg/installed/x64-windows/share/llvm ^
-  -DLLVM_ROOT=C:/vcpkg/installed/x64-windows
+  -DLLVM_ROOT=C:/vcpkg/installed/x64-windows ^
+  -Draylib_DIR=C:/vcpkg/installed/x64-windows/share/raylib
 
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] CMake configure failed!

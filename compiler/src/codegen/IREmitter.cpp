@@ -220,6 +220,43 @@ void IREmitter::declare_runtime() {
     declare("slua_tbl_sget_f64",  f64,   {i8p, i8p});
     declare("slua_tbl_sget_str",  i8p,   {i8p, i8p});
     declare("slua_tbl_sget_bool", i32,   {i8p, i8p});
+    auto* f32 = llvm::Type::getFloatTy(ctx_);
+    declare("slua_window_init",          voidT, {i32, i32, i8p});
+    declare("slua_window_close",         voidT, {});
+    declare("slua_window_should_close",  i32,   {});
+    declare("slua_begin_drawing",        voidT, {});
+    declare("slua_end_drawing",          voidT, {});
+    declare("slua_clear_bg",             voidT, {i32, i32, i32, i32});
+    declare("slua_set_target_fps",       voidT, {i32});
+    declare("slua_get_fps",              i32,   {});
+    declare("slua_get_frame_time",       f64,   {});
+    declare("slua_screen_width",         i32,   {});
+    declare("slua_screen_height",        i32,   {});
+    declare("slua_draw_rect",            voidT, {i32, i32, i32, i32, i32, i32, i32, i32});
+    declare("slua_draw_rect_outline",    voidT, {i32, i32, i32, i32, i32, i32, i32, i32, i32});
+    declare("slua_draw_circle",          voidT, {i32, i32, f32, i32, i32, i32, i32});
+    declare("slua_draw_circle_outline",  voidT, {i32, i32, f32, i32, i32, i32, i32});
+    declare("slua_draw_line",            voidT, {i32, i32, i32, i32, i32, i32, i32, i32, i32});
+    declare("slua_draw_triangle",        voidT, {i32, i32, i32, i32, i32, i32, i32, i32, i32, i32});
+    declare("slua_draw_text",            voidT, {i8p, i32, i32, i32, i32, i32, i32, i32});
+    declare("slua_measure_text",         i32,   {i8p, i32});
+    declare("slua_is_key_down",          i32,   {i32});
+    declare("slua_is_key_pressed",       i32,   {i32});
+    declare("slua_is_key_released",      i32,   {i32});
+    declare("slua_get_mouse_x",          i32,   {});
+    declare("slua_get_mouse_y",          i32,   {});
+    declare("slua_is_mouse_btn_pressed", i32,   {i32});
+    declare("slua_is_mouse_btn_down",    i32,   {i32});
+    declare("slua_get_mouse_wheel",      f64,   {});
+    declare("slua_ui_button",            i32,   {i32, i32, i32, i32, i8p});
+    declare("slua_ui_label",             voidT, {i32, i32, i32, i32, i8p});
+    declare("slua_ui_checkbox",          i32,   {i32, i32, i32, i8p, i32});
+    declare("slua_ui_slider",            f64,   {i32, i32, i32, i32, f64, f64, f64});
+    declare("slua_ui_progress_bar",      voidT, {i32, i32, i32, i32, f64, f64});
+    declare("slua_ui_panel",             voidT, {i32, i32, i32, i32, i8p});
+    declare("slua_ui_text_input",        i32,   {i32, i32, i32, i32, i8p, i32, i32});
+    declare("slua_ui_set_font_size",     voidT, {i32});
+    declare("slua_ui_set_accent",        voidT, {i32, i32, i32});
 }
 
 llvm::Function* IREmitter::get_runtime_fn(const std::string& name) {
@@ -1332,6 +1369,116 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
                     auto* fn = get_runtime_fn("slua_os_cwd");
                     if (fn) return builder_.CreateCall(fn, {}, "oscwd");
                 }
+                return llvm::ConstantInt::get(i64, 0);
+            }
+
+            if (mod == "window") {
+                auto* i32 = llvm::Type::getInt32Ty(ctx_);
+                auto* i64 = llvm::Type::getInt64Ty(ctx_);
+                auto ci32 = [&](llvm::Value* v) -> llvm::Value* {
+                    if (!v) return llvm::ConstantInt::get(i32, 0);
+                    if (v->getType()->isIntegerTy(32)) return v;
+                    if (v->getType()->isIntegerTy()) return builder_.CreateTrunc(v, i32);
+                    if (v->getType()->isDoubleTy())  return builder_.CreateFPToSI(v, i32);
+                    return v;
+                };
+                auto ga = [&](size_t n) -> llvm::Value* { return e.args.size() > n ? emit_expr(*e.args[n]) : nullptr; };
+                if (meth == "init" && e.args.size() >= 3) {
+                    auto* fn = get_runtime_fn("slua_window_init");
+                    if (fn) builder_.CreateCall(fn, {ci32(ga(0)), ci32(ga(1)), ga(2)});
+                    return llvm::ConstantInt::get(i64, 0);
+                }
+                if (meth == "close") { auto* fn = get_runtime_fn("slua_window_close"); if (fn) builder_.CreateCall(fn, {}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "should_close") { auto* fn = get_runtime_fn("slua_window_should_close"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {}, "wsc"), i64); }
+                if (meth == "begin_drawing") { auto* fn = get_runtime_fn("slua_begin_drawing"); if (fn) builder_.CreateCall(fn, {}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "end_drawing")   { auto* fn = get_runtime_fn("slua_end_drawing");   if (fn) builder_.CreateCall(fn, {}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "clear" && e.args.size() >= 4) { auto* fn = get_runtime_fn("slua_clear_bg"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "set_fps" && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_set_target_fps"); if (fn) builder_.CreateCall(fn, {ci32(ga(0))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "get_fps") { auto* fn = get_runtime_fn("slua_get_fps"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {}, "fps"), i64); }
+                if (meth == "frame_time") { auto* fn = get_runtime_fn("slua_get_frame_time"); if (fn) return builder_.CreateCall(fn, {}, "ft"); }
+                if (meth == "width")  { auto* fn = get_runtime_fn("slua_screen_width");  if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {}, "sw"), i64); }
+                if (meth == "height") { auto* fn = get_runtime_fn("slua_screen_height"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {}, "sh"), i64); }
+                return llvm::ConstantInt::get(i64, 0);
+            }
+
+            if (mod == "draw") {
+                auto* i32 = llvm::Type::getInt32Ty(ctx_);
+                auto* i64 = llvm::Type::getInt64Ty(ctx_);
+                auto* f32 = llvm::Type::getFloatTy(ctx_);
+                auto ci32 = [&](llvm::Value* v) -> llvm::Value* {
+                    if (!v) return llvm::ConstantInt::get(i32, 0);
+                    if (v->getType()->isIntegerTy(32)) return v;
+                    if (v->getType()->isIntegerTy()) return builder_.CreateTrunc(v, i32);
+                    if (v->getType()->isDoubleTy())  return builder_.CreateFPToSI(v, i32);
+                    return v;
+                };
+                auto cf32 = [&](llvm::Value* v) -> llvm::Value* {
+                    if (!v) return llvm::ConstantFP::get(f32, 0.0);
+                    if (v->getType()->isFloatTy())   return v;
+                    if (v->getType()->isDoubleTy())  return builder_.CreateFPTrunc(v, f32);
+                    if (v->getType()->isIntegerTy()) return builder_.CreateSIToFP(v, f32);
+                    return v;
+                };
+                auto ga = [&](size_t n) -> llvm::Value* { return e.args.size() > n ? emit_expr(*e.args[n]) : nullptr; };
+                if (meth == "rect" && e.args.size() >= 8) { auto* fn = get_runtime_fn("slua_draw_rect"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6)),ci32(ga(7))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "rect_outline" && e.args.size() >= 9) { auto* fn = get_runtime_fn("slua_draw_rect_outline"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6)),ci32(ga(7)),ci32(ga(8))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "circle" && e.args.size() >= 7) { auto* fn = get_runtime_fn("slua_draw_circle"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),cf32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "circle_outline" && e.args.size() >= 7) { auto* fn = get_runtime_fn("slua_draw_circle_outline"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),cf32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "line" && e.args.size() >= 9) { auto* fn = get_runtime_fn("slua_draw_line"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6)),ci32(ga(7)),ci32(ga(8))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "triangle" && e.args.size() >= 10) { auto* fn = get_runtime_fn("slua_draw_triangle"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6)),ci32(ga(7)),ci32(ga(8)),ci32(ga(9))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "text" && e.args.size() >= 8) { auto* fn = get_runtime_fn("slua_draw_text"); if (fn) builder_.CreateCall(fn, {ga(0),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ci32(ga(4)),ci32(ga(5)),ci32(ga(6)),ci32(ga(7))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "measure_text" && e.args.size() >= 2) { auto* fn = get_runtime_fn("slua_measure_text"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ga(0), ci32(ga(1))}, "mtw"), i64); }
+                return llvm::ConstantInt::get(i64, 0);
+            }
+
+            if (mod == "input") {
+                auto* i32 = llvm::Type::getInt32Ty(ctx_);
+                auto* i64 = llvm::Type::getInt64Ty(ctx_);
+                auto ci32 = [&](llvm::Value* v) -> llvm::Value* {
+                    if (!v) return llvm::ConstantInt::get(i32, 0);
+                    if (v->getType()->isIntegerTy(32)) return v;
+                    if (v->getType()->isIntegerTy()) return builder_.CreateTrunc(v, i32);
+                    return v;
+                };
+                auto ga = [&](size_t n) -> llvm::Value* { return e.args.size() > n ? emit_expr(*e.args[n]) : nullptr; };
+                if (meth == "key_down"     && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_is_key_down");          if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0))}, "kd"), i64); }
+                if (meth == "key_pressed"  && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_is_key_pressed");        if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0))}, "kp"), i64); }
+                if (meth == "key_released" && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_is_key_released");       if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0))}, "kr"), i64); }
+                if (meth == "mouse_x")     { auto* fn = get_runtime_fn("slua_get_mouse_x");          if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {}, "mx"), i64); }
+                if (meth == "mouse_y")     { auto* fn = get_runtime_fn("slua_get_mouse_y");          if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {}, "my"), i64); }
+                if (meth == "mouse_pressed" && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_is_mouse_btn_pressed"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0))}, "mbp"), i64); }
+                if (meth == "mouse_down"    && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_is_mouse_btn_down");    if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0))}, "mbd"), i64); }
+                if (meth == "mouse_wheel")  { auto* fn = get_runtime_fn("slua_get_mouse_wheel"); if (fn) return builder_.CreateCall(fn, {}, "mw"); }
+                return llvm::ConstantInt::get(i64, 0);
+            }
+
+            if (mod == "ui") {
+                auto* i32 = llvm::Type::getInt32Ty(ctx_);
+                auto* i64 = llvm::Type::getInt64Ty(ctx_);
+                auto* f64 = llvm::Type::getDoubleTy(ctx_);
+                auto ci32 = [&](llvm::Value* v) -> llvm::Value* {
+                    if (!v) return llvm::ConstantInt::get(i32, 0);
+                    if (v->getType()->isIntegerTy(32)) return v;
+                    if (v->getType()->isIntegerTy()) return builder_.CreateTrunc(v, i32);
+                    if (v->getType()->isDoubleTy())  return builder_.CreateFPToSI(v, i32);
+                    return v;
+                };
+                auto cf64 = [&](llvm::Value* v) -> llvm::Value* {
+                    if (!v) return llvm::ConstantFP::get(f64, 0.0);
+                    if (v->getType()->isDoubleTy()) return v;
+                    if (v->getType()->isIntegerTy()) return builder_.CreateSIToFP(v, f64);
+                    return v;
+                };
+                auto ga = [&](size_t n) -> llvm::Value* { return e.args.size() > n ? emit_expr(*e.args[n]) : nullptr; };
+                if (meth == "button"   && e.args.size() >= 5) { auto* fn = get_runtime_fn("slua_ui_button");   if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ga(4)}, "ubtn"), i64); }
+                if (meth == "label"    && e.args.size() >= 5) { auto* fn = get_runtime_fn("slua_ui_label");    if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ga(4)}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "checkbox" && e.args.size() >= 5) { auto* fn = get_runtime_fn("slua_ui_checkbox"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ga(3),ci32(ga(4))}, "uchk"), i64); }
+                if (meth == "slider"   && e.args.size() >= 7) { auto* fn = get_runtime_fn("slua_ui_slider");   if (fn) return builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),cf64(ga(4)),cf64(ga(5)),cf64(ga(6))}, "usldr"); }
+                if (meth == "progress_bar" && e.args.size() >= 6) { auto* fn = get_runtime_fn("slua_ui_progress_bar"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),cf64(ga(4)),cf64(ga(5))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "panel"    && e.args.size() >= 5) { auto* fn = get_runtime_fn("slua_ui_panel");    if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ga(4)}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "text_input" && e.args.size() >= 7) { auto* fn = get_runtime_fn("slua_ui_text_input"); if (fn) return builder_.CreateSExt(builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2)),ci32(ga(3)),ga(4),ci32(ga(5)),ci32(ga(6))}, "uti"), i64); }
+                if (meth == "set_font_size" && e.args.size() >= 1) { auto* fn = get_runtime_fn("slua_ui_set_font_size"); if (fn) builder_.CreateCall(fn, {ci32(ga(0))}); return llvm::ConstantInt::get(i64, 0); }
+                if (meth == "set_accent" && e.args.size() >= 3) { auto* fn = get_runtime_fn("slua_ui_set_accent"); if (fn) builder_.CreateCall(fn, {ci32(ga(0)),ci32(ga(1)),ci32(ga(2))}); return llvm::ConstantInt::get(i64, 0); }
                 return llvm::ConstantInt::get(i64, 0);
             }
         }

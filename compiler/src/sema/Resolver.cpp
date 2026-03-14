@@ -7,8 +7,7 @@ namespace slua {
 
 
 
-bool Scope::define(const std::string& name, Symbol sym,
-                   DiagEngine& diag, CompileMode mode) {
+bool Scope::define(const std::string& name, Symbol sym,DiagEngine& diag, CompileMode mode) {
     auto it = syms_.find(name);
     if (it != syms_.end()) {
         
@@ -365,7 +364,8 @@ void Resolver::resolve_ident(Ident& e, Expr& node) {
         
         static const std::vector<std::string> builtins = {
             "print", "read_line", "tostring", "tonumber",
-            "math", "os", "io", "table", "string", "stdata",
+            "math", "os", "io", "table", "string", "stdata",            
+            "window", "draw", "input", "ui",
             "assert", "error", "pcall", "xpcall",
             "ipairs", "pairs", "next", "select", "type",
             "rawget", "rawset", "rawequal", "rawlen",

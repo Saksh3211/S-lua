@@ -141,12 +141,12 @@ namespace slua {
         env_->define("string",make_any());
         env_->define("stdata", make_any());
         env_->define("os", make_any());
+        env_->define("window", make_any());
+        env_->define("draw",make_any());
+        env_->define("input",make_any());
+        env_->define("ui", make_any());
     }
-
     
-    
-    
-
     SluaTypePtr TypeChecker::resolve_type_node(const TypeNode* t) {
         if (!t) return make_any();
 
@@ -998,13 +998,13 @@ namespace slua {
         
         if (cfg_.mode == CompileMode::STRICT) {
             diag_.error("E0092",
-                ctx + ": type mismatch ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cannot assign '" + from->to_string() +
+                ctx + ": type mismatch cannot assign '" + from->to_string() +
                 "' to '" + to->to_string() + "'", loc);
             return false;
         } else {
             if (cfg_.type_annotation_viol == DiagBehavior::WARNING)
                 diag_.warn("W0092",
-                    ctx + ": type mismatch ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â '" + from->to_string() +
+                    ctx + ": type mismatch " + from->to_string() +
                     "' assigned to '" + to->to_string() + "'", loc);
             return true;
         }
