@@ -1,10 +1,7 @@
 --!!type:strict
 --!!mem:auto
 import stdata
-
-function add(a:int64, b:int64):int64
-    return a + b
-end
+import ("utils.slua")
 
 function retable():table
     local t:table= {}

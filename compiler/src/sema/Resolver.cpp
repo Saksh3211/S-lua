@@ -94,6 +94,7 @@ void Resolver::resolve_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, BreakStmt>)   {  }
         else if constexpr (std::is_same_v<T, ContinueStmt>){  }
         else if constexpr (std::is_same_v<T, ImportDecl>)  {  }
+        else if constexpr (std::is_same_v<T, FileImportDecl>) {}
     }, s.v);
 }
 

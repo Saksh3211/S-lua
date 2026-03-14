@@ -20,12 +20,6 @@ double slua_exp  (double x) { return exp(x);          }
 double slua_inf  (void)     { return HUGE_VAL;         }
 double slua_nan  (void)     { return nan("");}
 
-/* ── String helpers ──────────────────────────────────────────────────────────── */
-
-/* All returned strings are heap-allocated.
-   The GC/manual memory story: callers own them. For now they leak in the
-   stdlib layer — real fix is integrating with slua_alloc in a future pass. */
-
 int32_t slua_str_len(const char* s) {
     if (!s) return 0;
     return (int32_t)strlen(s);
@@ -61,7 +55,6 @@ char* slua_str_sub(const char* s, int32_t from, int32_t to) {
 }
 
 char* slua_int_to_str(int64_t n) {
-    /* max int64 is 19 digits + sign + null */
     char* buf = (char*)malloc(24);
     if (!buf) return NULL;
     snprintf(buf, 24, "%lld", (long long)n);
@@ -119,10 +112,9 @@ int32_t slua_str_find(const char* haystack, const char* needle, int32_t from) {
 
 char* slua_str_trim(const char* s) {
     if (!s) return NULL;
-    /* skip leading whitespace */
     while (*s && isspace((unsigned char)*s)) s++;
     size_t len = strlen(s);
-    /* strip trailing whitespace */
+    
     while (len > 0 && isspace((unsigned char)s[len - 1])) len--;
     char* buf = (char*)malloc(len + 1);
     if (!buf) return NULL;
@@ -149,7 +141,7 @@ void slua_flush(void) {
 char* slua_read_line(void) {
     char   tmp[4096];
     if (!fgets(tmp, sizeof(tmp), stdin)) return strdup("");
-    /* strip trailing newline */
+    
     size_t len = strlen(tmp);
     if (len > 0 && tmp[len-1] == '\n') tmp[--len] = '\0';
     if (len > 0 && tmp[len-1] == '\r') tmp[--len] = '\0';
@@ -279,3 +271,52 @@ int32_t slua_tbl_sget_bool(SluaTable* t, const char* key) {
     return (int32_t)v.val.bits;
 }
 
+
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
+int64_t slua_os_time() { return (int64_t)time(NULL); }
+
+void slua_os_sleep(int64_t ms) {
+#ifdef _WIN32
+    Sleep((DWORD)ms);
+#else
+    usleep((useconds_t)(ms * 1000));
+#endif
+}
+
+void slua_os_sleepS(int64_t s) {
+#ifdef _WIN32
+    Sleep((DWORD)(s * 1000));
+#else
+    sleep((unsigned int)s);
+#endif
+}
+char* slua_os_getenv(const char* key) {
+    char* v = getenv(key);
+    if (!v) return (char*)"";
+    char* buf = (char*)malloc(strlen(v) + 1);
+    strcpy(buf, v);
+    return buf;
+}
+
+void slua_os_system(const char* cmd) { system(cmd); }
+
+char* slua_os_cwd() {
+    char buf[4096];
+#ifdef _WIN32
+    _getcwd(buf, sizeof(buf));
+#else
+    getcwd(buf, sizeof(buf));
+#endif
+    char* out = (char*)malloc(strlen(buf) + 1);
+    strcpy(out, buf);
+    return out;
+}

@@ -470,8 +470,16 @@ StmtPtr Parser::parse_defer_stmt() {
 
 StmtPtr Parser::parse_import_decl() {
     SourceLoc loc = advance().loc;
+    if (check(TokenKind::TK_LPAREN)) {
+        advance();
+        std::string path = expect(TokenKind::TK_STRING_LIT, "import path").text;
+        expect(TokenKind::TK_RPAREN, "import path");
+        auto s = std::make_unique<Stmt>();
+        s->v   = FileImportDecl{path};
+        s->loc = loc;
+        return s;
+    }
     std::string mod = expect(TokenKind::TK_IDENT, "import module name").text;
-
     auto s = std::make_unique<Stmt>();
     s->v   = ImportDecl{mod};
     s->loc = loc;

@@ -96,6 +96,7 @@ struct FuncDecl   { std::string name; bool exported;
                     TypeNodePtr ret_type;
                     std::vector<StmtPtr> body; };
 struct ExternDecl { std::string name; TypeNodePtr func_type; };
+struct FileImportDecl { std::string path; };
 struct ImportDecl { std::string module_name; };
 struct PanicStmt  { ExprPtr msg; };
 struct StoreStmt  { ExprPtr ptr; ExprPtr val; };
@@ -109,7 +110,7 @@ struct Stmt {
         LocalDecl, GlobalDecl, Assign, CallStmt, DoBlock,
         IfStmt, WhileStmt, RepeatStmt, NumericFor,
         ReturnStmt, BreakStmt, ContinueStmt, DeferStmt, CStyleFor,
-        FuncDecl, ExternDecl, ImportDecl, PanicStmt,
+        FuncDecl, ExternDecl, ImportDecl, FileImportDecl, PanicStmt,
         StoreStmt, FreeStmt, TypeDecl>;
     Variant v;
     SourceLoc loc;

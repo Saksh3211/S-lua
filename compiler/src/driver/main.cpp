@@ -289,6 +289,37 @@ int main(int argc, char** argv) {
     slua::Parser parser(lexer, diag, mode);
     auto mod = parser.parse_module(input_file);
 
+    {
+        std::function<void(slua::Module&, const std::string&)> resolve_imports;
+        resolve_imports = [&](slua::Module& m, const std::string& base_file) {
+            std::string base_dir = base_file;
+            auto slash = base_dir.find_last_of("/\\");
+            if (slash != std::string::npos) base_dir = base_dir.substr(0, slash + 1);
+            else base_dir = "";
+            std::vector<std::unique_ptr<slua::Stmt>> expanded;
+            for (auto& s : m.stmts) {
+                if (auto* fi = std::get_if<slua::FileImportDecl>(&s->v)) {
+                    std::string fpath = base_dir + fi->path;
+                    std::ifstream ff(fpath, std::ios::binary);
+                    if (!ff) { fprintf(stderr, "sluac: cannot open import '%s'\n", fpath.c_str()); exit(1); }
+                    std::ostringstream ss; ss << ff.rdbuf();
+                    std::string fsrc = ss.str();
+                    slua::Lexer  flex(fsrc, fpath, mode);
+                    slua::Parser fpar(flex, diag, mode);
+                    auto fmod = fpar.parse_module(fpath);
+                    resolve_imports(*fmod, fpath);
+                    for (auto& fs : fmod->stmts)
+                        expanded.push_back(std::move(fs));
+                } else {
+                    expanded.push_back(std::move(s));
+                }
+            }
+            m.stmts = std::move(expanded);
+        };
+        resolve_imports(*mod, input_file);
+    }
+
+
     if (diag.has_errors()) { diag.dump_all(); return 1; }
     
     {

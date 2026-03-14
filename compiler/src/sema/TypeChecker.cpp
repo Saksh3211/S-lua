@@ -140,6 +140,7 @@ namespace slua {
         env_->define("table",make_any());
         env_->define("string",make_any());
         env_->define("stdata", make_any());
+        env_->define("os", make_any());
     }
 
     
@@ -276,6 +277,7 @@ namespace slua {
             else if constexpr (std::is_same_v<T, BreakStmt>)   {}
             else if constexpr (std::is_same_v<T, ContinueStmt>){}
             else if constexpr (std::is_same_v<T, ImportDecl>)  {}
+        else if constexpr (std::is_same_v<T, FileImportDecl>) {}
         }, s.v);
     }
 
@@ -996,13 +998,13 @@ namespace slua {
         
         if (cfg_.mode == CompileMode::STRICT) {
             diag_.error("E0092",
-                ctx + ": type mismatch â€” cannot assign '" + from->to_string() +
+                ctx + ": type mismatch ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cannot assign '" + from->to_string() +
                 "' to '" + to->to_string() + "'", loc);
             return false;
         } else {
             if (cfg_.type_annotation_viol == DiagBehavior::WARNING)
                 diag_.warn("W0092",
-                    ctx + ": type mismatch â€” '" + from->to_string() +
+                    ctx + ": type mismatch ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â '" + from->to_string() +
                     "' assigned to '" + to->to_string() + "'", loc);
             return true;
         }

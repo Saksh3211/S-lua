@@ -13,11 +13,9 @@
 
 namespace slua {
 
-IREmitter::IREmitter(DiagEngine& diag, SemanticConfig cfg,
-                     const std::string& module_name)
-    : diag_(diag), cfg_(cfg),
-      mod_(std::make_unique<llvm::Module>(module_name, ctx_)),
-      builder_(ctx_) {
+IREmitter::IREmitter(DiagEngine& diag, SemanticConfig cfg,const std::string& module_name)
+    : diag_(diag), cfg_(cfg),mod_(std::make_unique<llvm::Module>(module_name, ctx_)),
+    builder_(ctx_) {
     declare_runtime();
 }
 
@@ -51,11 +49,9 @@ void IREmitter::add_defer(std::function<void()> fn) {
         defer_stack_.back().push_back({std::move(fn)});
 }
 
-llvm::AllocaInst* IREmitter::create_alloca(llvm::Type* ty,
-                                            const std::string& name) {
+llvm::AllocaInst* IREmitter::create_alloca(llvm::Type* ty,const std::string& name) {
     assert(cur_func_ && "create_alloca outside function");
-    llvm::IRBuilder<> tmp(&cur_func_->getEntryBlock(),
-                           cur_func_->getEntryBlock().begin());
+    llvm::IRBuilder<> tmp(&cur_func_->getEntryBlock(),cur_func_->getEntryBlock().begin());
     return tmp.CreateAlloca(ty, nullptr, name);
 }
 
@@ -138,7 +134,7 @@ llvm::Type* IREmitter::tagvalue_type() {
     }
     return tv;
 }
-
+// here i declare all the runtime funcs . -==-=-=-=-=-=-=--=-=-=-=-=--=-=--=-=-=-=-=-=-=-=-=-=-=-=-=
 void IREmitter::declare_runtime() {
     auto* i8p   = llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(ctx_));
     auto* i64   = llvm::Type::getInt64Ty(ctx_);
@@ -147,9 +143,8 @@ void IREmitter::declare_runtime() {
     auto* voidT = llvm::Type::getVoidTy(ctx_);
 
     auto declare = [&](const std::string& name,
-                       llvm::Type* ret,
-                       std::vector<llvm::Type*> params,
-                       bool vararg = false) {
+        llvm::Type* ret,std::vector<llvm::Type*> params,
+            bool vararg = false) {
         auto* ft = llvm::FunctionType::get(ret, params, vararg);
         auto* fn = llvm::Function::Create(
             ft, llvm::Function::ExternalLinkage, name, *mod_);
@@ -176,19 +171,26 @@ void IREmitter::declare_runtime() {
     declare("slua_print_str_no_newline", voidT, {i8p});
     declare("slua_flush",                voidT, {});
 
-    declare("slua_str_concat",           i8p,   {i8p, i8p});
-    declare("slua_int_to_str",           i8p,   {i64});
-    declare("slua_float_to_str",         i8p,   {f64});
-    declare("slua_str_len",              i32,   {i8p});
-    declare("slua_str_byte",             i32,   {i8p, i32});
-    declare("slua_str_char",             i8p,   {i32});
-    declare("slua_str_sub",              i8p,   {i8p, i32, i32});
-    declare("slua_str_upper",            i8p,   {i8p});
-    declare("slua_str_lower",            i8p,   {i8p});
-    declare("slua_str_find",             i32,   {i8p, i8p, i32});
-    declare("slua_str_trim",             i8p,   {i8p});
-    declare("slua_str_to_int",           i64,   {i8p});
-    declare("slua_str_to_float",         f64,   {i8p});
+    declare("slua_str_concat", i8p,   {i8p, i8p});
+    declare("slua_int_to_str",  i8p,   {i64});
+    declare("slua_float_to_str",i8p,   {f64});
+    declare("slua_str_len",i32,   {i8p});
+    declare("slua_str_byte",i32,   {i8p, i32});
+    declare("slua_str_char",i8p,   {i32});
+    declare("slua_str_sub", i8p,   {i8p, i32, i32});
+    declare("slua_str_upper",i8p,   {i8p});
+    declare("slua_str_lower", i8p,   {i8p});
+    declare("slua_str_find", i32,   {i8p, i8p, i32});
+    declare("slua_str_trim",i8p,   {i8p});
+    declare("slua_str_to_int",i64,   {i8p});
+    declare("slua_str_to_float",f64,   {i8p});
+
+    declare("slua_os_time",i64,   {});
+    declare("slua_os_sleep",voidT, {i64});
+    declare("slua_os_getenv", i8p,   {i8p});
+    declare("slua_os_system", voidT, {i8p});
+    declare("slua_os_cwd",i8p,   {});
+    declare("slua_os_sleepS", voidT, {i64});
 
     declare("slua_sqrt",  f64, {f64});
     declare("slua_pow",   f64, {f64, f64});
@@ -1054,7 +1056,7 @@ llvm::Value* IREmitter::emit_unop(Unop& e, SourceLoc loc) {
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx_), 0);
     return val;
 }
-
+// here the umm, all the libs -=-========-=-=-=-=-=-=-=-=-=-=-=-=-=-=-========-=-=-=-=-=-=-=-=-=-=-=
 llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
     if (auto* fi = std::get_if<Field>(&e.callee->v)) {
         if (auto* mod_id = std::get_if<Ident>(&fi->table->v)) {
@@ -1293,6 +1295,42 @@ llvm::Value* IREmitter::emit_call_expr(Call& e, SourceLoc loc) {
                     builder_.CreateUnreachable();
                     builder_.SetInsertPoint(pass_bb);
                     return llvm::ConstantInt::get(i64, 0);
+                }
+                return llvm::ConstantInt::get(i64, 0);
+            }
+
+            if (mod == "os") {
+                auto* i64 = llvm::Type::getInt64Ty(ctx_);
+                if (meth == "time") {
+                    auto* fn = get_runtime_fn("slua_os_time");
+                    if (fn) return builder_.CreateCall(fn, {}, "ostime");
+                }
+                if (meth == "sleep" && e.args.size() >= 1) {
+                    auto* fn = get_runtime_fn("slua_os_sleep");
+                    auto* a  = coerce(emit_expr(*e.args[0]), i64, loc);
+                    if (fn) builder_.CreateCall(fn, {a});
+                    return llvm::ConstantInt::get(i64, 0);
+                }
+                if (meth == "sleepS" && e.args.size() >= 1) {
+                    auto* fn = get_runtime_fn("slua_os_sleepS");
+                    auto* a  = coerce(emit_expr(*e.args[0]), i64, loc);
+                    if (fn) builder_.CreateCall(fn, {a});
+                    return llvm::ConstantInt::get(i64, 0);
+                }
+                if (meth == "getenv" && e.args.size() >= 1) {
+                    auto* fn = get_runtime_fn("slua_os_getenv");
+                    auto* a  = emit_expr(*e.args[0]);
+                    if (fn && a) return builder_.CreateCall(fn, {a}, "osenv");
+                }
+                if (meth == "system" && e.args.size() >= 1) {
+                    auto* fn = get_runtime_fn("slua_os_system");
+                    auto* a  = emit_expr(*e.args[0]);
+                    if (fn && a) builder_.CreateCall(fn, {a});
+                    return llvm::ConstantInt::get(i64, 0);
+                }
+                if (meth == "cwd") {
+                    auto* fn = get_runtime_fn("slua_os_cwd");
+                    if (fn) return builder_.CreateCall(fn, {}, "oscwd");
                 }
                 return llvm::ConstantInt::get(i64, 0);
             }

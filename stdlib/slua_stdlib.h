@@ -72,3 +72,11 @@ void     slua_io_print_color       (const char* msg, const char* color);
 #endif
 
 #endif
+
+int64_t slua_os_time();
+void    slua_os_sleep(int64_t ms);
+char*   slua_os_getenv(const char* key);
+int64_t slua_os_exit_code();
+void    slua_os_system(const char* cmd);
+char*   slua_os_cwd();
+void slua_os_sleepS(int64_t s);
