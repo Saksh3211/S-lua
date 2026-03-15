@@ -397,8 +397,8 @@ void IREmitter::emit_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, StoreStmt>)    emit_store_stmt(v);
         else if constexpr (std::is_same_v<T, FreeStmt>)     emit_free_stmt(v);
         else if constexpr (std::is_same_v<T, PanicStmt>)    emit_panic_stmt(v);
-        else if constexpr (std::is_same_v<T, TypeDecl>)     emit_type_decl(v, s.loc);
-        else if constexpr (std::is_same_v<T, ExternDecl>)   emit_extern_decl(v, s.loc);
+        else if constexpr (std::is_same_v<T, TypeDecl>) {} 
+        else if constexpr (std::is_same_v<T, ExternDecl>) {}
         else if constexpr (std::is_same_v<T, BreakStmt>) {
             if (!break_targets_.empty()) {
                 builder_.CreateBr(break_targets_.back());

@@ -93,6 +93,7 @@ void Resolver::resolve_stmt(Stmt& s) {
         else if constexpr (std::is_same_v<T, BreakStmt>)   {  }
         else if constexpr (std::is_same_v<T, ContinueStmt>){  }
         else if constexpr (std::is_same_v<T, ImportDecl>) {
+            imported_modules_.insert(v.module_name);
             if (v.module_name == "stdgui") stdgui_imported_ = true;
         }
         else if constexpr (std::is_same_v<T, FileImportDecl>) {}
@@ -390,7 +391,6 @@ void Resolver::resolve_ident(Ident& e, Expr& node) {
         
         static const std::vector<std::string> builtins = {
             "print", "read_line", "tostring", "tonumber",
-            "math", "os", "io", "table", "string", "stdata",            
             "assert", "error", "pcall", "xpcall",
             "ipairs", "pairs", "next", "select", "type",
             "rawget", "rawset", "rawequal", "rawlen",
@@ -407,6 +407,9 @@ void Resolver::resolve_ident(Ident& e, Expr& node) {
                 e.name == "font")
                 is_builtin = true;
         }
+
+        if (!is_builtin && imported_modules_.count(e.name))
+            is_builtin = true;
 
         if (!is_builtin) {
             if (cfg_.mode == CompileMode::STRICT) {

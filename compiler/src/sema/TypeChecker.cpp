@@ -134,17 +134,7 @@ namespace slua {
             make_func({make_any()}, make_string()));
 
         
-        env_->define("math", make_any());
-        env_->define("os",   make_any());
-        env_->define("io",   make_any());
-        env_->define("table",make_any());
-        env_->define("string",make_any());
-        env_->define("stdata", make_any());
-        env_->define("os", make_any());
-        env_->define("window", make_any());
-        env_->define("draw",make_any());
-        env_->define("input",make_any());
-        env_->define("ui", make_any());
+        
     }
     
     SluaTypePtr TypeChecker::resolve_type_node(const TypeNode* t) {
@@ -289,11 +279,16 @@ namespace slua {
                 if (v.module_name == "stdgui") {
                     stdgui_imported_ = true;
                     env_->define("window", make_any());
-                    env_->define("draw",   make_any());
-                    env_->define("input",  make_any());
-                    env_->define("ui",     make_any());
-                    env_->define("font",   make_any());
-                }
+                    env_->define("draw", make_any());
+                    env_->define("input", make_any());
+                    env_->define("ui",make_any());
+                    env_->define("font",make_any());
+                } else if (v.module_name == "math")   { env_->define("math",   make_any()); }
+                else if (v.module_name == "os") { env_->define("os",     make_any()); }
+                else if (v.module_name == "io") { env_->define("io",     make_any()); }
+                else if (v.module_name == "string") { env_->define("string", make_any()); }
+                else if (v.module_name == "stdata") { env_->define("stdata", make_any()); }
+                else if (v.module_name == "table")  { env_->define("table",  make_any()); }
             }
         else if constexpr (std::is_same_v<T, FileImportDecl>) {}
         }, s.v);

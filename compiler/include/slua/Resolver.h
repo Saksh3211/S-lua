@@ -4,6 +4,7 @@
 #include "SemanticConfig.h"
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <optional>
 
@@ -69,6 +70,7 @@ private:
     
     TypeNode* current_ret_type_ = nullptr;
     bool       stdgui_imported_ = false;
+    std::unordered_set<std::string> imported_modules_;
 
     
     void push_scope();
