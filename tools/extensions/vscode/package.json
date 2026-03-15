@@ -1,28 +1,48 @@
 {
-"name": "slua",
-"displayName": "S Lua Language Support",
-"version": "0.0.1",
-"engines": {
-"vscode": "^1.70.0"
-},
-"activationEvents": [
-"onLanguage:slua"
-],
-"main": "./extension.js",
-"contributes": {
-"languages": [
-{
-"id": "slua",
-"aliases": ["S Lua"],
-"extensions": [".slua"]
-}
-],
-"grammars": [
-{
-"language": "slua",
-"scopeName": "source.slua",
-"path": "./syntaxes/slua.tmLanguage.json"
-}
-]
-}
+  "name": "slua-language",
+  "displayName": "S Lua Language",
+  "description": "Language support for S-Lua",
+  "version": "0.1.0",
+  "publisher": "slua",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": ["Programming Languages"],
+  "activationEvents": [
+    "onLanguage:slua"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+
+    "languages": [
+      {
+        "id": "slua",
+        "aliases": ["S Lua", "slua"],
+        "extensions": [".slua"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+
+    "grammars": [
+      {
+        "language": "slua",
+        "scopeName": "source.slua",
+        "path": "./syntaxes/slua.tmLanguage.json"
+      }
+    ],
+
+    "snippets": [
+      {
+        "language": "slua",
+        "path": "./snippets/slua.json"
+      }
+    ],
+
+    "commands": [
+      {
+        "command": "slua.compile",
+        "title": "Compile S-Lua File"
+      }
+    ]
+  }
 }

@@ -1,4 +1,6 @@
 --!!type:strict
+import string
+
 function main():int64
     local s:string = "Hello World"
     local up:string = string.upper(s)

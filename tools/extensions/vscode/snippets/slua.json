@@ -1,0 +1,27 @@
+{
+  "Function": {
+    "prefix": "func",
+    "body": [
+      "function ${1:name}(${2})",
+      "    $0",
+      "end"
+    ],
+    "description": "Create function"
+  },
+
+  "Local Variable": {
+    "prefix": "local",
+    "body": [
+      "local ${1:name} = ${2:value}"
+    ]
+  },
+
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition} then",
+      "    $0",
+      "end"
+    ]
+  }
+}

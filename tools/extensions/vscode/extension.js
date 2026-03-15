@@ -1,24 +1,43 @@
-const vscode = require("vscode");
-const lc = require("vscode-languageclient/node");
+const vscode = require('vscode')
+const cp = require('child_process')
+const path = require('path')
 
-function activate(context)
-{
-    const serverOptions = {
-        command: "slua-lsp"
-    };
+function activate(context) {
 
-    const clientOptions = {
-        documentSelector: [{ scheme: "file", language: "slua" }]
-    };
+    const compileCommand = vscode.commands.registerCommand('slua.compile', function () {
 
-    const client = new lc.LanguageClient(
-        "slua",
-        "S Lua Language Server",
-        serverOptions,
-        clientOptions
-    );
+        const editor = vscode.window.activeTextEditor
 
-    client.start();
+        if (!editor) {
+            vscode.window.showErrorMessage("No file open")
+            return
+        }
+
+        const file = editor.document.fileName
+
+        const workspace = vscode.workspace.workspaceFolders[0].uri.fsPath
+
+        const compiler = path.join(workspace, "build", "compiler", "sluac.exe")
+
+        const output = cp.spawn(compiler, [file])
+
+        output.stdout.on('data', (data) => {
+            vscode.window.showInformationMessage(data.toString())
+        })
+
+        output.stderr.on('data', (data) => {
+            vscode.window.showErrorMessage(data.toString())
+        })
+
+    })
+
+    context.subscriptions.push(compileCommand)
+
 }
 
-exports.activate = activate;
+function deactivate(){}
+
+module.exports = {
+    activate,
+    deactivate
+}
