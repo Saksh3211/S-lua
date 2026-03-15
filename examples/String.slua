@@ -10,6 +10,7 @@ function main():int64
     print(up)
     print(low)
     print(sub)
+    print("hi")
     print(len)
     return 0
 end

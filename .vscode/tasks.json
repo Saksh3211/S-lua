@@ -1,131 +1,35 @@
 {
     "version": "2.0.0",
     "tasks": [
+
         {
-            "label": "sluac: build",
+            "label": "slua: run current file",
             "type": "shell",
-            "command": "${workspaceFolder}\\cmake_configure.bat",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}\\slua.ps1",
+                "Slua-Run",
+                "${relativeFile}"
+            ],
+            
             "group": {
-                "kind": "build",
-                "isDefault": false
+                "kind": "test",
+                "isDefault": true
             },
             "presentation": {
                 "reveal": "always",
                 "panel": "shared",
-                "clear": true
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "sluac: emit tokens (current file)",
-            "type": "shell",
-            "command": "${workspaceFolder}\\build\\compiler\\sluac.exe",
-            "args": [
-                "${file}",
-                "--emit-tokens"
-            ],
-            "group": "test",
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
+                "clear": true,
+                "focus": true,
+                "showReuseMessage": false
             },
             "problemMatcher": {
                 "owner": "sluac",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceFolder}"
-                ],
+                "fileLocation": ["relative", "${workspaceFolder}"],
                 "pattern": {
-                    "regexp": "^\\[E\\w+\\]\\s+(\\S+):(\\d+):(\\d+)\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "message": 4
-                }
-            }
-        },
-        {
-            "label": "sluac: emit AST (current file)",
-            "type": "shell",
-            "command": "${workspaceFolder}\\build\\compiler\\sluac.exe",
-            "args": [
-                "${file}",
-                "--emit-ast"
-            ],
-            "group": "test",
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            },
-            "problemMatcher": {
-                "owner": "sluac",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceFolder}"
-                ],
-                "pattern": {
-                    "regexp": "^\\[E\\w+\\]\\s+(\\S+):(\\d+):(\\d+)\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "message": 4
-                }
-            }
-        },
-        {
-            "label": "sluac: check (current file)",
-            "type": "shell",
-            "command": "${workspaceFolder}\\build\\compiler\\sluac.exe",
-            "args": [
-                "${file}"
-            ],
-            "group": "test",
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            },
-            "problemMatcher": {
-                "owner": "sluac",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceFolder}"
-                ],
-                "pattern": {
-                    "regexp": "^\\[EE?(\\w+)\\]\\s+(\\S+):(\\d+):(\\d+)\\s+(.*)$",
-                    "file": 2,
-                    "line": 3,
-                    "column": 4,
-                    "message": 5,
-                    "severity": 1
-                }
-            }
-        },
-        {
-            "label": "sluac: emit IR (current file)",
-            "type": "shell",
-            "command": "${workspaceFolder}\\build\\compiler\\sluac.exe",
-            "args": [
-                "${file}",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.ll"
-            ],
-            "group": "test",
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "clear": true
-            },
-            "problemMatcher": {
-                "owner": "sluac",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceFolder}"
-                ],
-                "pattern": {
-                    "regexp": "^\\[EE?(\\w+)\\]\\s+(\\S+):(\\d+):(\\d+)\\s+(.*)$",
+                    "regexp": "^\\[([EW][\\w]+)\\]\\s+(\\S+):(\\d+):(\\d+)\\s+(.*)$",
+                    "severity": 1,
                     "file": 2,
                     "line": 3,
                     "column": 4,
@@ -133,29 +37,55 @@
                 }
             }
         },
+
         {
-            "type": "cppbuild",
-            "label": "C/C++: clang.exe build active file",
-            "command": "C:\\LLVM\\bin\\clang.exe",
-            "args": [
-                "-fcolor-diagnostics",
-                "-fansi-escape-codes",
-                "-g",
-                "${file}",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
-            ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
+            "label": "slua: build compiler",
+            "type": "shell",
+            "command": "${workspaceFolder}\\cmake_configure.bat",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Task generated by Debugger."
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true,
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "sluac: emit AST (current file)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build\\compiler\\sluac.exe",
+            "args": ["${file}", "--emit-ast"],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true,
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "sluac: emit IR (current file)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build\\compiler\\sluac.exe",
+            "args": [
+                "${file}", "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.ll"
+            ],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true,
+                "showReuseMessage": false
+            },
+            "problemMatcher": []
         }
     ]
 }

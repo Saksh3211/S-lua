@@ -3,12 +3,10 @@
     "editor.insertSpaces": true,
     "editor.rulers": [100],
 
-    // ── S Lua file association ────────────────────────────────────────────────
     "files.associations": {
-        "*.slua": "lua"
+        "*.slua": "slua"
     },
 
-    // ── Silence clangd / C++ errors on .slua files ────────────────────────────
     "clangd.enableCodeCompletion": true,
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}/build",
@@ -16,37 +14,25 @@
         "--clang-tidy=false"
     ],
 
-    // ── Exclude stdlib and examples from C++ analysis ─────────────────────────
     "C_Cpp.files.exclude": {
-        "**/*.slua": true,
-        "**/stdlib/*.slua": true,
-        "**/examples/*.slua": true
+        "**/*.slua": true
     },
-
-    // ── Turn off IntelliSense on non-C++ files ─────────────────────────────────
     "C_Cpp.intelliSenseEngine": "default",
     "C_Cpp.errorSquiggles": "enabled",
 
-    // ── Lua extension settings (used for .slua syntax highlight) ─────────────
     "Lua.diagnostics.enable": false,
-    "Lua.workspace.ignoreDir": [],
-    "Lua.runtime.version": "Lua 5.4",
 
-    // ── Suppress unknown word warnings in .slua ───────────────────────────────
-    "cSpell.enableFiletypes": [],
-    "cSpell.ignorePaths": [
-        "**/*.slua"
-    ],
+    "cSpell.ignorePaths": ["**/*.slua"],
 
-    // ── Problem matcher — only show errors from sluac terminal tasks ──────────
-    "problems.decorations.enabled": true,
-
-    // ── File explorer cosmetics ───────────────────────────────────────────────
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
         "*.slua": "${capture}.slua.sig"
     },
 
-    // ── Task runner ───────────────────────────────────────────────────────────
-    "terminal.integrated.defaultProfile.windows": "PowerShell"
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.generator": "Ninja",
+    "cmake.configureOnOpen": false,
+    "cmake.buildBeforeRun": false
 }

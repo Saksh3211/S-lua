@@ -1,4 +1,6 @@
 --!!type:strict
+import io
+
 function main():int2
     local sum:int64 = 0
     local a:int64 = 0

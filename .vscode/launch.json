@@ -1,49 +1,62 @@
 {
     "version": "0.2.0",
+    
     "configurations": [
+
         {
-            "name": "Debug sluac (hello_strict)",
+            "name": "Run S Lua File",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/compiler/sluac.exe",
+            "program": "powershell.exe",
             "args": [
-                "examples/hello_strict.slua",
-                "--emit-ast"
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}\\slua.ps1",
+                "Slua-Run",
+                "${relativeFile}"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "integratedTerminal",
-            "preLaunchTask": "sluac: build"
+            "presentation": {
+                "hidden": false,
+                "group": "slua",
+                "order": 1
+            }
         },
+
         {
-            "name": "Debug sluac (current file)",
+            "name": "Debug sluac (current .slua file)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/compiler/sluac.exe",
-            "args": [
-                "${file}"
-            ],
+            "args": ["${file}"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "integratedTerminal",
-            "preLaunchTask": "sluac: build"
+            "presentation": {
+                "hidden": false,
+                "group": "compiler",
+                "order": 2
+            }
         },
+
         {
-            "name": "Debug sluac (memory_example)",
+            "name": "Debug sluac (hello_strict --emit-ast)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/compiler/sluac.exe",
-            "args": [
-                "examples/memory_example.slua",
-                "--emit-ast"
-            ],
+            "args": ["examples/hello_strict.slua", "--emit-ast"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "integratedTerminal",
-            "preLaunchTask": "sluac: build"
+            "presentation": {
+                "hidden": false,
+                "group": "compiler",
+                "order": 3
+            }
         }
     ]
 }

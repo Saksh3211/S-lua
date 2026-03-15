@@ -1,27 +1,14 @@
 {
     "recommendations": [
-        // Syntax highlighting for .slua (via Lua grammar)
-        "sumneko.lua",
-
-        // C++ compiler / clangd for the compiler source itself
         "llvm-vs-code-extensions.vscode-clangd",
-
-        // CMake support
+        "ms-vscode.powershell",
         "twxs.cmake",
-        "ms-vscode.cmake-tools",
-
-        // Git
         "eamodio.gitlens",
-
-        // Bracket colorization & indent guides
-        "oderwat.indent-rainbow",
-
-        // Better terminal
-        "ms-vscode.powershell"
+        "oderwat.indent-rainbow"
     ],
-
-    // These conflict with clangd — disable if installed
     "unwantedRecommendations": [
-        "ms-vscode.cpptools"
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "sumneko.lua"
     ]
 }

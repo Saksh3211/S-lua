@@ -1,16 +1,15 @@
 {
-  "name": "slua-language",
-  "displayName": "S Lua Language",
-  "description": "Language support for S-Lua",
-  "version": "0.1.0",
-  "publisher": "slua",
-  "engines": {
-    "vscode": "^1.70.0"
-  },
-  "categories": ["Programming Languages"],
-  "activationEvents": [
-    "onLanguage:slua"
-  ],
+  "name": "slua-extension",
+  "displayName": "S Lua extension",
+  "description": "This is offocial slua vscode extention. Features: highlighting, real-time diagnostics, auto-complete, hover docs, and themes for the S Lua language.",
+  "version": "0.2.0",
+  "publisher": "Saksh3211",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/Saksh3211/S-lua" },
+  "engines": { "vscode": "^1.70.0" },
+  "categories": ["Programming Languages", "Linters", "Snippets", "Themes"],
+  "keywords": ["slua", "s-lua", "systems-lua", "llvm"],
+  "activationEvents": ["onLanguage:slua"],
   "main": "./extension.js",
   "contributes": {
 
@@ -32,17 +31,83 @@
     ],
 
     "snippets": [
+      { "language": "slua", "path": "./snippets/slua.json" }
+    ],
+
+    "themes": [
       {
-        "language": "slua",
-        "path": "./snippets/slua.json"
+        "label": "S Lua Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/slua-dark.json"
       }
     ],
 
     "commands": [
       {
         "command": "slua.compile",
-        "title": "Compile S-Lua File"
+        "title": "Run Diagnostics",
+        "category": "S Lua"
+      },
+      {
+        "command": "slua.runFile",
+        "title": "Run File (slua.ps1)",
+        "category": "S Lua"
       }
-    ]
+    ],
+
+    "menus": {
+      "editor/context": [
+        {
+          "command": "slua.compile",
+          "when": "resourceExtname == .slua",
+          "group": "slua@1"
+        },
+        {
+          "command": "slua.runFile",
+          "when": "resourceExtname == .slua",
+          "group": "slua@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "slua.runFile",
+          "when": "resourceExtname == .slua",
+          "group": "navigation"
+        }
+      ]
+    },
+
+    "configuration": {
+      "title": "S Lua",
+      "properties": {
+        "slua.compilerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to sluac.exe. Leave empty to auto-detect from <workspace>/build/compiler/sluac.exe."
+        },
+        "slua.sluaRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the S Lua project root (used by the Run File command to call slua.ps1). Leave empty to use the workspace root."
+        },
+        "slua.lintOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run diagnostics when a .slua file is saved."
+        },
+        "slua.lintOnChange": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run diagnostics as you type (uses a temporary file)."
+        },
+        "slua.lintDelay": {
+          "type": "number",
+          "default": 600,
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Milliseconds to wait after the last keystroke before running lint-on-change."
+        }
+      }
+    }
   }
 }
